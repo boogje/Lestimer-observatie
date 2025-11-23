@@ -6,87 +6,119 @@ import { addSegment, closeLastSegment, rebuildTimeline } from './timeline.js';
 import { initNotes } from './notes.js';
 import { formatTime, addLog } from './helpers.js';
 
-// Globale state (alleen hier gedeeld)
 window.state = {
   running: false,
   startTime: null,
   lastSwitch: null,
   totalElapsed: 0,
-  accum: [0, 0, 0, 0],
+  accum: [0,0,0,0],
   active: 0,
   segments: [],
-  segmentStart: null
+  segmentStart: null,
+  info: {}
 };
 
-// Maak categorieën globaal beschikbaar voor timeline.js
 window.categories = categories;
 
 export function initApp(categories) {
   const state = window.state;
 
-  // 1. Bouw de categorieën op de pagina
-  buildCategories(categories);
+  // Intro scherm knop
+  document.getElementById('startObservationBtn').onclick = () => {
+    // Info opslaan
+    state.info = {
+      subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
+      teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
+      group:   document.getElementById('group').value.trim()   || "Onbekende groep"
+    };
 
-  // 2. Activeer knoppen
-  initButtons(state, categories);
+    // Titel updaten
+    document.getElementById('pageTitle').textContent = state.info.subject;
 
-  // 3. Notities initialiseren
-  initNotes(state);
+    // Schakel naar timer scherm
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('timerScreen').classList.remove('hidden');
 
-  // 4. Categorie wissel-logica
-  document.querySelectorAll('.cat').forEach(cat => {
-    cat.addEventListener('click', () => {
-      if (!state.running) return;
+    // Bouw categorieën
+    buildCategories(categories);
 
-      // Sluit vorig segment af
-      addSegment(state, state.active);
+    // Start de timer
+    state.running = true;
+    state.startTime = state.lastSwitch = state.segmentStart = Date.now();
 
-      // Update vorige categorie (verwijder active + kleur)
-      document.querySelectorAll('.cat').forEach(c => {
-        c.classList.remove('active');
-        c.style.background = '#333';
-      });
+    // Toon bediening
+    document.getElementById('pauseBtn').classList.remove('hidden');
+    document.getElementById('stopBtn').classList.remove('hidden');
+    document.getElementById('noteInput').classList.remove('hidden');
+    document.getElementById('noteBtn').classList.remove('hidden');
 
-      // Nieuwe actieve categorie
-      state.active = parseInt(cat.dataset.id);
-      cat.classList.add('active');
-      cat.style.background = categories[state.active].color;
+    // Kleur eerste categorie
+    document.querySelector('.cat').style.background = categories[0].color;
 
-      // Start nieuw segment
-      state.segmentStart = Date.now();
+    // Log start + info
+    addLog('Observatie gestart', 'start');
+    addLog(`Lesgever: ${state.info.teacher}`);
+    addLog(`Doelgroep: ${state.info.group}`);
+  };
 
-      addLog(`→ ${categories[state.active].name}`, 'cat', state.active);
+  // Categorie wissel
+  document.addEventListener('click', e => {
+    if (!e.target.closest) return;
+    const cat = e.target.closest('.cat');
+    if (!cat || !state.running) return;
+
+    addSegment(state, state.active);
+
+    document.querySelectorAll('.cat').forEach(c => {
+      c.classList.remove('active');
+      c.style.background = '#333';
     });
+
+    state.active = parseInt(cat.dataset.id);
+    cat.classList.add('active');
+    cat.style.background = categories[state.active].color;
+    state.segmentStart = Date.now();
+
+    addLog(`→ ${categories[state.active].name}`, 'cat', state.active);
   });
 
-  // 5. Hoofd-timer (200ms update)
+  // Timer loop
   setInterval(() => {
     if (!state.running) return;
-
     const now = Date.now();
     const elapsed = now - state.lastSwitch;
     state.accum[state.active] += elapsed;
     state.totalElapsed += elapsed;
     state.lastSwitch = now;
-
     updateDisplay(state, categories);
   }, 200);
 
-  // 6. Stop-knop logica
+  // Pauze knop
+  document.getElementById('pauseBtn').onclick = () => {
+    state.running = !state.running;
+    document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
+    if (state.running) state.lastSwitch = Date.now();
+    addLog(state.running ? 'Hervat' : 'Gepauzeerd');
+  };
+
+  // Stop knop
   document.getElementById('stopBtn').onclick = () => {
-    if (state.running) {
-      // Stop timer
-      state.running = false;
-      document.getElementById('pauseBtn').textContent = 'Pauze';
-    }
-
-    // Sluit laatste segment netjes af
+    state.running = false;
     closeLastSegment(state);
-
     addLog('Observatie beëindigd');
 
-    // Genereer resultaat
-    let result = `Observatie beëindigd – ${new Date().toLocaleString('nl-BE')}\n\n`;
+    // Toon Reset knop
+    document.getElementById('pauseBtn').classList.add('hidden');
+    document.getElementById('stopBtn').classList.add('hidden');
+    document.getElementById('resetBtn').classList.remove('hidden');
+
+    // Resultaat genereren
+    let result = `OBSERVATIE RAPPORT\n`;
+    result += `${'='.repeat(50)}\n\n`;
+    result += `Lesonderwerp: ${state.info.subject}\n`;
+    result += `Lesgever:     ${state.info.teacher}\n`;
+    result += `Doelgroep:    ${state.info.group}\n`;
+    result += `Datum:        ${new Date().toLocaleDateString('nl-BE')}\n\n`;
     result += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\n`;
 
     categories.forEach((cat, i) => {
@@ -94,13 +126,18 @@ export function initApp(categories) {
       result += `${cat.name}: ${formatTime(state.accum[i])} (${perc}%)\n`;
     });
 
-    result += `\nVolledig logboek:\n`;
-    document.querySelectorAll('#log .logentry').forEach(entry => {
-      result += entry.textContent + '\n';
-    });
+    result += `\nVolledig logboek:\n${'-'.repeat(30)}\n`;
+    document.querySelectorAll('#log .logentry').forEach(e => result += e.textContent + '\n');
 
-    const resultDiv = document.getElementById('result');
-    resultDiv.textContent = result;
-    resultDiv.style.display = 'block';
+    document.getElementById('result').textContent = result;
+    document.getElementById('result').style.display = 'block';
   };
+
+  // Reset knop
+  document.getElementById('resetBtn').onclick = () => {
+    if (confirm('Nieuwe observatie starten?')) location.reload();
+  };
+
+  // Notities
+  initNotes(state);
 }
