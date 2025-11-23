@@ -2,778 +2,283 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>Sportles Observatie Timer v10</title>
+<title>Sportles Observatie Timer v8</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background:#1e1e1e;
-    color:#ddd;
-    margin:0;
-    padding:0;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-  }
-
-  h1 {text-align:center; margin:15px 0; font-size:1.4em; color:#fff;}
-
-  /* ─────────────────────────────────────────────
-     STARTPANEEL
-     ───────────────────────────────────────────── */
-  #configPanel {
-    background:#222;
-    padding:20px;
-    border-radius:12px;
-    width:90%;
-    max-width:600px;
-    margin:20px auto;
-    display:block;
-  }
-
-  #configPanel h2 {
-    margin-top:0;
-    font-size:1.3em;
-    color:#fff;
-  }
-
-  #configPanel label {
-    font-size:.95em;
-    opacity:.8;
-  }
-
-  #configPanel input {
-    width:100%;
-    padding:10px;
-    margin:6px 0 18px 0;
-    border:1px solid #555;
-    background:#111;
-    color:white;
-    border-radius:8px;
-  }
-
-  #configStartBtn {
-    width:100%;
-    padding:15px;
-    font-size:1.2em;
-    background:#4caf50;
-    border:none;
-    border-radius:10px;
-    color:white;
-    cursor:pointer;
-  }
-
-  /* ─────────────────────────────────────────────
-     MAIN LAYOUT
-     ───────────────────────────────────────────── */
-  main {
-    flex:1;
-    overflow-y:auto;
-    padding:10px;
-    display:none;
-  }
-
-  aside {
-    height:100%;
-    overflow-y:auto;
-    padding:10px;
-  }
-
-  @media(min-width:900px){
-    body{ flex-direction:row; }
-    main{ width:64%; }
-    aside{ width:36%; padding-left:12px; }
-  }
-
-  #total {text-align:center; font-size:2.6em; margin:10px 0; font-weight:bold;}
-
-  /* ─────────────────────────────────────────────
-     TIMELINE + LESDEEL LABELS
-     ───────────────────────────────────────────── */
-  #timelineWrapper {margin:20px 0;}
-  #timelineLabels {
-    display:flex;
-    height:22px;
-    margin-bottom:4px;
-    overflow:hidden;
-    font-size:.88em;
-  }
-
-  .timelineLabel {
-    background:rgba(255,255,255,.14);
-    text-align:center;
-    color:#fff;
-    padding:2px 4px;
-    border-radius:4px;
-    white-space:nowrap;
-    overflow:hidden;
-  }
-
-  #timeline {
-    height:20px;
-    border-radius:10px;
-    overflow:hidden;
-    background:#222;
-    display:flex;
-  }
-
-  .seg {
-    height:100%;
-    transition:width .25s linear;
-  }
-
-  /* ─────────────────────────────────────────────
-     CATEGORIE-KNOPPEN
-     ───────────────────────────────────────────── */
-  .cat {
-    position:relative;
-    padding:18px 16px 24px 16px;
-    margin:12px 0;
-    border-radius:14px;
-    cursor:pointer;
-    background:#333;
-  }
-  .cat.active {
-    transform:scale(1.03);
-    box-shadow:0 0 20px rgba(0,0,0,.7);
-  }
-
-  .fill {
-    position:absolute;
-    inset:0;
-    width:0%;
-    opacity:.45;
-    transition:width .25s linear;
-  }
-
-  .label {
-    font-size:1.3em;
-    font-weight:bold;
-    position:relative;
-    z-index:2;
-    margin-bottom:4px;
-  }
-
-  .desc {
-    font-size:.95em;
-    opacity:.85;
-    position:relative;
-    z-index:2;
-  }
-
-  .time {
-    position:absolute;
-    right:16px;
-    bottom:14px;
-    font-size:2em;
-    font-weight:bold;
-    z-index:2;
-  }
-
-  .perc {
-    position:absolute;
-    left:16px;
-    top:10px;
-    font-size:1em;
-    font-weight:bold;
-    padding:3px 9px;
-    background:rgba(0,0,0,.65);
-    border-radius:6px;
-    z-index:3;
-  }
-
-  .controls {display:flex; gap:10px; margin:15px 0; flex-wrap:wrap;}
-  button {flex:1; padding:15px; font-size:1.15em; border:none; border-radius:10px;}
-
-  #startBtn {background:#4caf50; color:white; font-size:1.5em;}
-  #pauseBtn {background:#ff9800; color:black;}
-  #stopBtn  {background:#66bb6a; color:white;}
-  #resetBtn {background:#d32f2f; color:white;}
-
-  #noteInput {
-    width:100%; padding:12px; margin:10px 0;
-    background:#222; border:1px solid #444; border-radius:8px; color:white;
-  }
-
-  #noteBtn {background:#555; color:white; width:100%;}
-
-  /* ─────────────────────────────────────────────
-     LOG STRUCTUUR
-     ───────────────────────────────────────────── */
-  #log {
-    background:#111;
-    padding:12px;
-    font-family:monospace;
-    border-radius:10px;
-    font-size:.98em;
-  }
-
-  .logL1 {
-    font-weight:bold;
-    color:#fff;
-    margin-top:12px;
-    padding:4px 0;
-  }
-
-  .logL2 {
-    padding-left:20px;
-    color:#ddd;
-    margin:3px 0;
-  }
-
-  .logL3 {
-    padding-left:40px;
-    color:#ccc;
-    margin:2px 0;
-  }
-
-  /* ─────────────────────────────────────────────
-     EXPORT
-     ───────────────────────────────────────────── */
-  #exportSection {
-    display:none;
-    margin-top:20px;
-  }
-
-  #copyBtn, #downloadBtn {
-    padding:12px;
-    background:#444;
-    border:none;
-    border-radius:8px;
-    color:white;
-    cursor:pointer;
-    width:48%;
-  }
-
+&nbsp;&nbsp;body {
+&nbsp;&nbsp;&nbsp;&nbsp;font-family: Arial, sans-serif;
+&nbsp;&nbsp;&nbsp;&nbsp;background:#1e1e1e; color:#ddd;
+&nbsp;&nbsp;&nbsp;&nbsp;margin:0; padding:0;
+&nbsp;&nbsp;&nbsp;&nbsp;display:flex; flex-direction:column;
+&nbsp;&nbsp;&nbsp;&nbsp;height:100vh;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;h1 { text-align:center; margin:15px 0; font-size:1.4em; color:#fff; }
+&nbsp;&nbsp;#total { text-align:center; font-size:2.6em; margin:10px 0; font-weight:bold; }
+&nbsp;&nbsp;/* TIMELINE */
+&nbsp;&nbsp;#timeline {
+&nbsp;&nbsp;&nbsp;&nbsp;height:20px; border-radius:10px; overflow:hidden;
+&nbsp;&nbsp;&nbsp;&nbsp;background:#222; display:flex; width:100%; margin:15px 0;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;.seg { height:100%; }
+&nbsp;&nbsp;/* LAYOUT: percentages links in eigen kolom */
+&nbsp;&nbsp;.row { display:flex; width:100%; margin-bottom:8px; }
+&nbsp;&nbsp;.percBox {
+&nbsp;&nbsp;&nbsp;&nbsp;width:60px; min-width:60px;
+&nbsp;&nbsp;&nbsp;&nbsp;font-weight:bold; font-size:1.1em;
+&nbsp;&nbsp;&nbsp;&nbsp;background:#000; border-radius:6px;
+&nbsp;&nbsp;&nbsp;&nbsp;display:flex; align-items:center; justify-content:center;
+&nbsp;&nbsp;&nbsp;&nbsp;margin-right:10px; height:100%;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;/* CATEGORY BUTTON */
+&nbsp;&nbsp;.cat {
+&nbsp;&nbsp;&nbsp;&nbsp;flex:1; padding:18px 16px;
+&nbsp;&nbsp;&nbsp;&nbsp;border-radius:14px; cursor:pointer;
+&nbsp;&nbsp;&nbsp;&nbsp;position:relative; overflow:hidden;
+&nbsp;&nbsp;&nbsp;&nbsp;background:#333; transition:0.25s all;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;.cat.active { transform:scale(1.04); box-shadow:0 0 22px rgba(0,0,0,0.7); }
+&nbsp;&nbsp;.fill {
+&nbsp;&nbsp;&nbsp;&nbsp;position:absolute; left:0; top:0; bottom:0;
+&nbsp;&nbsp;&nbsp;&nbsp;width:0%; opacity:0.45; transition:width 0.5s ease;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;.label { font-size:1.35em; font-weight:bold; z-index:2; position:relative; }
+&nbsp;&nbsp;.desc { z-index:2; position:relative; margin-top:4px; opacity:0.8; }
+&nbsp;&nbsp;.time {
+&nbsp;&nbsp;&nbsp;&nbsp;position:absolute; right:16px; bottom:10px;
+&nbsp;&nbsp;&nbsp;&nbsp;font-size:2em; font-weight:bold; z-index:3;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;/* Controls */
+&nbsp;&nbsp;.controls { display:flex; gap:10px; margin:15px 0; }
+&nbsp;&nbsp;button {
+&nbsp;&nbsp;&nbsp;&nbsp;flex:1; padding:15px; font-size:1.15em;
+&nbsp;&nbsp;&nbsp;&nbsp;border:none; border-radius:10px;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;#startBtn { background:#4caf50; color:white; padding:22px; font-size:1.6em; }
+&nbsp;&nbsp;#pauseBtn { background:#ff9800; color:black; }
+&nbsp;&nbsp;#stopBtn { background:#66bb6a; color:white; }
+&nbsp;&nbsp;#resetBtn { background:#d32f2f; color:white; }
+&nbsp;&nbsp;#noteInput {
+&nbsp;&nbsp;&nbsp;&nbsp;width:100%; padding:12px;
+&nbsp;&nbsp;&nbsp;&nbsp;background:#222; border:1px solid #444;
+&nbsp;&nbsp;&nbsp;&nbsp;border-radius:8px; color:white; font-size:1em;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;#noteBtn { margin-top:6px; background:#555; color:#fff; }
+&nbsp;&nbsp;/* LOG */
+&nbsp;&nbsp;#log {
+&nbsp;&nbsp;&nbsp;&nbsp;background:#111; border-radius:10px;
+&nbsp;&nbsp;&nbsp;&nbsp;padding:12px; font-family:monospace;
+&nbsp;&nbsp;&nbsp;&nbsp;overflow-y:auto; flex:1; font-size:0.96em;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;.logentry { margin:7px 0; padding:5px 10px; border-radius:5px; }
+&nbsp;&nbsp;.log-cat0 { background:rgba(255,152,0,0.28); }
+&nbsp;&nbsp;.log-cat1 { background:rgba(179,157,219,0.28); }
+&nbsp;&nbsp;.log-cat2 { background:rgba(102,187,106,0.28); }
+&nbsp;&nbsp;.log-cat3 { background:rgba(158,158,158,0.28); }
+&nbsp;&nbsp;.note { padding-left:26px; position:relative; }
+&nbsp;&nbsp;.note::before { content:"→"; position:absolute; left:8px; opacity:0.7; }
+&nbsp;&nbsp;.hidden { display:none !important; }
+&nbsp;&nbsp;main { flex:1; overflow-y:auto; padding:12px; }
+&nbsp;&nbsp;@media(min-width:900px){
+&nbsp;&nbsp;&nbsp;&nbsp;body{ flex-direction:row; }
+&nbsp;&nbsp;&nbsp;&nbsp;main{ width:62%; }
+&nbsp;&nbsp;&nbsp;&nbsp;aside{ width:38%; padding-left:14px; }
+&nbsp;&nbsp;}
 </style>
 </head>
 <body>
-
-<!-- ─────────────────────────────────────────────
-     STARTPANEEL (voor invullen van lesgegevens)
-     ───────────────────────────────────────────── -->
-<div id="configPanel">
-  <h2>Lesgegevens invullen</h2>
-
-  <label>Titel van de les:</label>
-  <input id="cfgTitle" type="text" placeholder="bv. Balvaardigheid – tikspelen">
-
-  <label>Lesgever(s):</label>
-  <input id="cfgTeacher" type="text" placeholder="bv. Juf Sarah, Meester Tom">
-
-  <label>Locatie / Klasgroep:</label>
-  <input id="cfgLocation" type="text" placeholder="bv. 6SPORT – Sporthal Rembert">
-
-  <button id="configStartBtn">Observatie starten</button>
-</div>
-
-
-
-<!-- ─────────────────────────────────────────────
-     MAIN OBSERVATIE-GEDEELTE
-     ───────────────────────────────────────────── -->
 <main>
-
-  <h1 id="lessonHeader"></h1>
-
-  <div id="total">00:00</div>
-
-  <!-- TIMELINE + LESDEEL LABELS -->
-  <div id="timelineWrapper">
-    <div id="timelineLabels"></div>
-    <div id="timeline"></div>
-  </div>
-
-  <!-- CATEGORIE KNOPPEN -->
-  <div class="cat active" data-id="0">
-    <div class="fill" style="background:#e65100"></div>
-    <div class="perc" id="p0">0%</div>
-    <div class="label">Organisatie & beheer</div>
-    <div class="desc">materiaal klaarzetten, wachten, orde herstellen…</div>
-    <div class="time" id="t0">0:00</div>
-  </div>
-
-  <div class="cat" data-id="1">
-    <div class="fill" style="background:#7e57c2"></div>
-    <div class="perc" id="p1">0%</div>
-    <div class="label">Instructie & uitleg</div>
-    <div class="desc">leerkracht praat, leerlingen luisteren…</div>
-    <div class="time" id="t1">0:00</div>
-  </div>
-
-  <div class="cat" data-id="2">
-    <div class="fill" style="background:#43a047"></div>
-    <div class="perc" id="p2">0%</div>
-    <div class="label">Actieve leertijd</div>
-    <div class="desc">leerlingen motorisch bezig met de leerinhoud…</div>
-    <div class="time" id="t2">0:00</div>
-  </div>
-
-  <div class="cat" data-id="3">
-    <div class="fill" style="background:#616161"></div>
-    <div class="perc" id="p3">0%</div>
-    <div class="label">Overig / pauze</div>
-    <div class="desc">onderbreking, blessure, drinken…</div>
-    <div class="time" id="t3">0:00</div>
-  </div>
-
-
-  <!-- TIMER CONTROLS -->
-  <div class="controls">
-    <button id="startBtn" class="hidden">Start observatie</button>
-    <button id="pauseBtn" class="hidden">Pauze</button>
-    <button id="stopBtn"  class="hidden">Stop & resultaten</button>
-    <button id="resetBtn" class="hidden">Reset</button>
-  </div>
-
-
-  <!-- NOTITIES -->
-  <input id="noteInput" class="hidden" type="text" placeholder="Opmerking typen…">
-  <button id="noteBtn" class="hidden">Notitie toevoegen</button>
-
-
-  <!-- EXPORT & RESULTAAT -->
-  <div id="exportSection">
-    <div style="display:flex; gap:12px;">
-      <button id="copyBtn">📋 Kopieer logboek</button>
-      <button id="downloadBtn">⬇️ Download TXT</button>
-    </div>
-  </div>
-
+&nbsp;&nbsp;<h1>Sportles Observatie Timer</h1>
+&nbsp;&nbsp;<div id="total">00:00</div>
+&nbsp;&nbsp;<div id="timeline"></div>
+&nbsp;&nbsp;<!-- CATEGORY ROWS -->
+&nbsp;&nbsp;<div class="row">
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="percBox" id="perc0">0%</div>
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="cat active" data-id="0">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="fill" style="background:#e65100"></div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="label">Organisatie & beheer</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="desc">materiaal klaarzetten, wachten, orde herstellen…</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="time" id="t0">0:00</div>
+&nbsp;&nbsp;&nbsp;&nbsp;</div>
+&nbsp;&nbsp;</div>
+&nbsp;&nbsp;<div class="row">
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="percBox" id="perc1">0%</div>
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="cat" data-id="1">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="fill" style="background:#7e57c2"></div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="label">Instructie & uitleg</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="desc">leerkracht praat, leerlingen luisteren</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="time" id="t1">0:00</div>
+&nbsp;&nbsp;&nbsp;&nbsp;</div>
+&nbsp;&nbsp;</div>
+&nbsp;&nbsp;<div class="row">
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="percBox" id="perc2">0%</div>
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="cat" data-id="2">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="fill" style="background:#43a047"></div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="label">Actieve leertijd</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="desc">leerlingen motorisch bezig</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="time" id="t2">0:00</div>
+&nbsp;&nbsp;&nbsp;&nbsp;</div>
+&nbsp;&nbsp;</div>
+&nbsp;&nbsp;<div class="row">
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="percBox" id="perc3">0%</div>
+&nbsp;&nbsp;&nbsp;&nbsp;<div class="cat" data-id="3">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="fill" style="background:#616161"></div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="label">Overig / pauze</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="desc">drinken, blessure, onderbreking…</div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="time" id="t3">0:00</div>
+&nbsp;&nbsp;&nbsp;&nbsp;</div>
+&nbsp;&nbsp;</div>
+&nbsp;&nbsp;<div class="controls">
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="startBtn">Start observatie</button>
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="pauseBtn" class="hidden">Pauze</button>
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="stopBtn" class="hidden">Stop & resultaten</button>
+&nbsp;&nbsp;&nbsp;&nbsp;<button id="resetBtn" class="hidden">Reset</button>
+&nbsp;&nbsp;</div>
+&nbsp;&nbsp;<input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
+&nbsp;&nbsp;<button id="noteBtn" class="hidden">Notitie toevoegen</button>
+&nbsp;&nbsp;<div id="result" style="margin-top:20px; padding:15px; background:#222; border-radius:10px; white-space:pre-wrap; font-family:monospace; display:none;"></div>
 </main>
-
-
-
-<!-- ─────────────────────────────────────────────
-     LOGBOEK
-     ───────────────────────────────────────────── -->
 <aside>
-  <h3>Logboek</h3>
-  <div id="log"></div>
+&nbsp;&nbsp;<h3>Logboek</h3>
+&nbsp;&nbsp;<div id="log"></div>
 </aside>
 <script>
-/* ============================================================
-   V10 SCRIPT – DEEL 1
-   Basale variabelen, helpers, config, segment-engine, lesdelen
-   ============================================================ */
-
-/* ─────────────────────────────────────────────────────────────
-   LESGEGEVENS (ingevuld in het startpaneel)
-   ───────────────────────────────────────────────────────────── */
-let lessonTitle = "";
-let lessonTeacher = "";
-let lessonLocation = "";
-
-/* ─────────────────────────────────────────────────────────────
-   TIJD & TIMING
-   ───────────────────────────────────────────────────────────── */
+/* ----------------- DATA -------------------- */
+const colors = ['#ff9800','#b39ddb','#66bb6a','#9e9e9e'];
 let running = false;
+let lastSwitch = null;
 let startTime = null;
-let lastTick  = null;
 let totalElapsed = 0;
-
-const accum = [0,0,0,0];           // tijd per categorie
-let activeCat = 0;                 // actieve categorie
-let noteTypingStart = null;        // absolute timestamp (Date.now())
-
-/* ─────────────────────────────────────────────────────────────
-   CATEGORIE DATA
-   ───────────────────────────────────────────────────────────── */
-const categories = [
-  "Organisatie & beheer",
-  "Instructie & uitleg",
-  "Actieve leertijd",
-  "Overig / pauze"
-];
-
-const colors = [
-  "#ff9800", "#b39ddb", "#66bb6a", "#9e9e9e"
-];
-
-const fillColors = [
-  "#e65100", "#7e57c2", "#43a047", "#616161"
-];
-
-/* ─────────────────────────────────────────────────────────────
-   LESSENDELEN (structuur van de les)
-   ─────────────────────────────────────────────────────────────
-   Regels:
-   - Een nieuw lesdeel start *automatisch* bij categorie 1 (Instructie)
-   - Elk lesdeel krijgt een segmentEntry in een array:
-        { start:ms, label:"", segments:[...] }
-   - segmenten voor timeline:
-        { cat:i, start:ms, end:ms? }
-   ───────────────────────────────────────────────────────────── */
-
-let lessonParts = [];      // lijst met lesdelen
-let currentPart = null;    // actief lesdeel (object)
-let timelineSegments = []; // tijdsverloop segmenten
-
-/* ============================================================
-   HULPFUNCTIES
-   ============================================================ */
-
+let accum = [0,0,0,0];
+let active = 0;
+/* Voor timeline */
+let segments = [];
+let segmentStart = null;
+/* Voor notities */
+let noteTypingStart = null;
+/* ----------------- HELPERS -------------------- */
 function fmt(ms){
-  const s = Math.floor(ms/1000);
-  const m = Math.floor(s/60);
-  const sec = String(s%60).padStart(2,"0");
-  if(m >= 60){
-    return `${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}:${sec}`;
-  }
-  return `${m}:${sec}`;
+&nbsp;&nbsp;const s = Math.floor(ms/1000);
+&nbsp;&nbsp;const m = Math.floor(s/60);
+&nbsp;&nbsp;const sec = (s%60).toString().padStart(2,'0');
+&nbsp;&nbsp;return m>=60 ? `${Math.floor(m/60)}:${(m%60).toString().padStart(2,'0')}:${sec}` : `${m}:${sec}`;
 }
-
-function nowTs(){ return Date.now(); }
-
-/* ============================================================
-   LOGGING MET HIERARCHIE
-   ============================================================ */
-
-function logL1(text, tOverride=null){
-  const t = (tOverride!==null ? fmt(tOverride) : fmt(totalElapsed));
-  const div = document.createElement("div");
-  div.className = "logL1";
-  div.textContent = `[${t}] ${text}`;
-  log.appendChild(div);
-  div.scrollIntoView({behavior:"smooth"});
+function lessonTimeFrom(ms){ return fmt(ms); }
+function addLog(txt, type='note', cat=null){
+&nbsp;&nbsp;const div = document.createElement('div');
+&nbsp;&nbsp;div.classList.add('logentry');
+&nbsp;&nbsp;if(type==='cat') div.classList.add('log-cat'+cat);
+&nbsp;&nbsp;if(type==='note') div.classList.add('note');
+&nbsp;&nbsp;const stamp = type==='start'
+&nbsp;&nbsp;&nbsp;&nbsp;? new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+&nbsp;&nbsp;&nbsp;&nbsp;: lessonTimeFrom(totalElapsed);
+&nbsp;&nbsp;div.textContent = `[${stamp}] ${txt}`;
+&nbsp;&nbsp;document.querySelector('#log').appendChild(div);
+&nbsp;&nbsp;div.scrollIntoView({behavior:'smooth'});
 }
-
-function logL2(text, tOverride=null){
-  const t = (tOverride!==null ? fmt(tOverride) : fmt(totalElapsed));
-  const div = document.createElement("div");
-  div.className = "logL2";
-  div.textContent = `[${t}] → ${text}`;
-  log.appendChild(div);
-  div.scrollIntoView({behavior:"smooth"});
+/* ----------------- TIMELINE -------------------- */
+function rebuildTimeline(){
+&nbsp;&nbsp;const tl = document.querySelector('#timeline');
+&nbsp;&nbsp;tl.innerHTML = '';
+&nbsp;&nbsp;const total = segments.reduce((a,s)=>a+s.duration,0) || 1;
+&nbsp;&nbsp;segments.forEach(seg=>{
+&nbsp;&nbsp;&nbsp;&nbsp;const div=document.createElement('div');
+&nbsp;&nbsp;&nbsp;&nbsp;div.className='seg';
+&nbsp;&nbsp;&nbsp;&nbsp;div.style.background=colors[seg.cat];
+&nbsp;&nbsp;&nbsp;&nbsp;div.style.width=(seg.duration/total*100)+'%';
+&nbsp;&nbsp;&nbsp;&nbsp;tl.appendChild(div);
+&nbsp;&nbsp;});
 }
-
-function logL3(text, tOverride=null){
-  const t = (tOverride!==null ? fmt(tOverride) : fmt(totalElapsed));
-  const div = document.createElement("div");
-  div.className = "logL3";
-  div.textContent = `[${t}] → ${text}`;
-  log.appendChild(div);
-  div.scrollIntoView({behavior:"smooth"});
+/* ----------------- UPDATE -------------------- */
+function update(){
+&nbsp;&nbsp;if(!running) return;
+&nbsp;&nbsp;const now=Date.now();
+&nbsp;&nbsp;const elapsed=now-lastSwitch;
+&nbsp;&nbsp;lastSwitch=now;
+&nbsp;&nbsp;accum[active]+=elapsed;
+&nbsp;&nbsp;totalElapsed+=elapsed;
+&nbsp;&nbsp;document.querySelector('#total').textContent = lessonTimeFrom(totalElapsed);
+&nbsp;&nbsp;accum.forEach((t,i)=>{
+&nbsp;&nbsp;&nbsp;&nbsp;document.querySelector('#t'+i).textContent = fmt(t);
+&nbsp;&nbsp;&nbsp;&nbsp;const perc = totalElapsed ? (t/totalElapsed*100).toFixed(1) : 0;
+&nbsp;&nbsp;&nbsp;&nbsp;document.querySelector('#perc'+i).textContent = perc+"%";
+&nbsp;&nbsp;&nbsp;&nbsp;document.querySelectorAll('.fill')[i].style.width = perc+"%";
+&nbsp;&nbsp;});
 }
-
-/* ============================================================
-   START VAN DE OBSERVATIE
-   ============================================================ */
-
-configStartBtn.onclick = () => {
-  lessonTitle   = cfgTitle.value.trim();
-  lessonTeacher = cfgTeacher.value.trim();
-  lessonLocation= cfgLocation.value.trim();
-
-  if(lessonTitle===""){ alert("Geef een titel in."); return; }
-  if(lessonTeacher===""){ alert("Geef de lesgever(s) in."); return; }
-
-  configPanel.style.display="none";
-  main.style.display="block";
-
-  lessonHeader.textContent =
-    `${lessonTitle} – ${lessonTeacher}` +
-    (lessonLocation ? ` (${lessonLocation})` : "");
-
-  startBtn.classList.remove("hidden");
-};
-
-/* ============================================================
-   START KNOP
-   ============================================================ */
-
-startBtn.onclick = () => {
-  running = true;
-  startTime = lastTick = nowTs();
-  totalElapsed = 0;
-
-  startBtn.classList.add("hidden");
-  pauseBtn.classList.remove("hidden");
-  stopBtn.classList.remove("hidden");
-  resetBtn.classList.remove("hidden");
-  noteInput.classList.remove("hidden");
-  noteBtn.classList.remove("hidden");
-
-  /* Eerste segment aanmaken */
-  timelineSegments = [];
-  timelineSegments.push({
-    cat: activeCat,
-    start: 0,
-    end: null
-  });
-
-  /* Eerste log */
-  logL1("OBSERVATIE GESTART");
-
-  logL2(`Categorie: ${categories[activeCat]} (0:00)`);
-
-  /* Eerste lesdeel? Nee: lesdeel start pas bij Instructie */
-};
-
-/* ============================================================
-   UPDATE TICK
-   ============================================================ */
-
-function tick(){
-  if(!running) return;
-
-  const now = nowTs();
-  const elapsed = now - lastTick;
-  lastTick = now;
-
-  accum[activeCat] += elapsed;
-  totalElapsed     += elapsed;
-
-  total.textContent = fmt(totalElapsed);
-
-  /* Update categorie-knoppen UI */
-  accum.forEach((ms,i)=>{
-    document.querySelector("#t"+i).textContent = fmt(ms);
-    const p = totalElapsed? (ms/totalElapsed*100).toFixed(1) : 0;
-    document.querySelector("#p"+i).textContent = p+"%";
-    document.querySelectorAll(".fill")[i].style.width = p+"%";
-  });
-
-  updateTimeline();       // live groei
-  updateTimelineLabels(); // lesdelen-balk
-}
-
-setInterval(tick, 200);
-
-/* ============================================================
-   CATEGORIE-WISSEL
-   ============================================================ */
-
-document.querySelectorAll(".cat").forEach(catDiv => {
-  catDiv.addEventListener("click", () => {
-    if(!running) return;
-
-    const newCat = Number(catDiv.dataset.id);
-    if(newCat === activeCat) return;
-
-    /* ---- segment afsluiten ---- */
-    const lastSeg = timelineSegments[timelineSegments.length-1];
-    lastSeg.end = totalElapsed;
-
-    const segDur = lastSeg.end - lastSeg.start;
-
-    /* ---- logging categorie-wissel ---- */
-    logL2(`${categories[newCat]} (${fmt(segDur)})`);
-
-    /* ---- nieuw segment starten ---- */
-    timelineSegments.push({
-      cat: newCat,
-      start: totalElapsed,
-      end: null
-    });
-
-    /* ---- lesdeel-engine ---- */
-    if(newCat === 1){   // instructie = nieuw lesdeel
-      currentPart = {
-        start: totalElapsed,
-        label: "",
-        end: null
-      };
-      lessonParts.push(currentPart);
-      logL1("NIEUW LESDEEL");
-    }
-
-    /* ---- UI wisselen ---- */
-    document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
-    catDiv.classList.add("active");
-
-    activeCat = newCat;
-    lastTick = nowTs();
-  });
+setInterval(update,200);
+/* ----------------- CATEGORY SWITCH -------------------- */
+document.querySelectorAll('.cat').forEach(cat=>{
+&nbsp;&nbsp;cat.addEventListener('click',()=>{
+&nbsp;&nbsp;&nbsp;&nbsp;if(!running) return;
+&nbsp;&nbsp;&nbsp;&nbsp;/* sluit vorige segment af */
+&nbsp;&nbsp;&nbsp;&nbsp;const segDur = Date.now()-segmentStart;
+&nbsp;&nbsp;&nbsp;&nbsp;segments.push({cat:active, duration:segDur});
+&nbsp;&nbsp;&nbsp;&nbsp;rebuildTimeline();
+&nbsp;&nbsp;&nbsp;&nbsp;/* switch */
+&nbsp;&nbsp;&nbsp;&nbsp;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
+&nbsp;&nbsp;&nbsp;&nbsp;active = +cat.dataset.id;
+&nbsp;&nbsp;&nbsp;&nbsp;cat.classList.add('active');
+&nbsp;&nbsp;&nbsp;&nbsp;segmentStart = Date.now();
+&nbsp;&nbsp;&nbsp;&nbsp;addLog(`→ ${cat.querySelector('.label').textContent}`, 'cat', active);
+&nbsp;&nbsp;});
 });
-
-/* ============================================================
-   NOTITIES
-   ============================================================ */
-
-noteInput.addEventListener("input", () => {
-  if(noteInput.value.trim().length>0 && !noteTypingStart && running){
-    noteTypingStart = nowTs();
-  }
+/* ----------------- START -------------------- */
+document.querySelector('#startBtn').onclick=()=>{
+&nbsp;&nbsp;running=true;
+&nbsp;&nbsp;startTime=lastSwitch=Date.now();
+&nbsp;&nbsp;segmentStart=Date.now();
+&nbsp;&nbsp;segments=[];
+&nbsp;&nbsp;document.querySelector('#timeline').innerHTML="";
+&nbsp;&nbsp;document.querySelector('#startBtn').classList.add('hidden');
+&nbsp;&nbsp;document.querySelectorAll('#pauseBtn, #stopBtn, #resetBtn, #noteInput, #noteBtn')
+&nbsp;&nbsp;&nbsp;&nbsp;.forEach(el=>el.classList.remove('hidden'));
+&nbsp;&nbsp;addLog('Observatie gestart','start');
+};
+/* ----------------- PAUSE -------------------- */
+document.querySelector('#pauseBtn').onclick=()=>{
+&nbsp;&nbsp;running=!running;
+&nbsp;&nbsp;document.querySelector('#pauseBtn').textContent = running ? 'Pauze' : '▶ Hervatten';
+&nbsp;&nbsp;if(running) lastSwitch=Date.now();
+&nbsp;&nbsp;addLog(running?'Hervat':'Gepauzeerd');
+};
+/* ----------------- NOTES -------------------- */
+const noteInput=document.querySelector('#noteInput');
+noteInput.addEventListener('input',()=>{
+&nbsp;&nbsp;if(noteInput.value.length>0 && noteTypingStart===null){
+&nbsp;&nbsp;&nbsp;&nbsp;noteTypingStart = totalElapsed;
+&nbsp;&nbsp;}
 });
-
-noteBtn.onclick = () => {
-  const text = noteInput.value.trim();
-  if(!text) return;
-
-  const t = noteTypingStart ? (noteTypingStart - startTime) : totalElapsed;
-  logL3(text, t);
-
-  noteTypingStart = null;
-  noteInput.value = "";
+document.querySelector('#noteBtn').onclick=()=>{
+&nbsp;&nbsp;const txt=noteInput.value.trim();
+&nbsp;&nbsp;if(!txt) return;
+&nbsp;&nbsp;const t = noteTypingStart!==null ? noteTypingStart : totalElapsed;
+&nbsp;&nbsp;totalElapsed = t; // temporary override? No → we print the manual timestamp
+&nbsp;&nbsp;addLog(txt);
+&nbsp;&nbsp;noteTypingStart=null;
+&nbsp;&nbsp;noteInput.value="";
 };
-
-/* ============================================================
-   DIT WAS DEEL 1 VAN HET SCRIPT
-   DEEL 2 KOMT STRAKS: timeline-rendering, export, stop/reset
-   ============================================================ */
+/* ----------------- STOP -------------------- */
+document.querySelector('#stopBtn').onclick=()=>{
+&nbsp;&nbsp;if(running){ update(); running=false; }
+&nbsp;&nbsp;/* sluit laatste segment af */
+&nbsp;&nbsp;const segDur = Date.now()-segmentStart;
+&nbsp;&nbsp;segments.push({cat:active, duration:segDur});
+&nbsp;&nbsp;rebuildTimeline();
+&nbsp;&nbsp;addLog('Observatie beëindigd');
+&nbsp;&nbsp;let out=`Observatie beëindigd – ${new Date().toLocaleString('nl-BE')}\n\n`;
+&nbsp;&nbsp;out+=`Totale lestijd: ${fmt(totalElapsed)}\n\n`;
+&nbsp;&nbsp;const labels=["Organisatie & beheer","Instructie & uitleg","Actieve leertijd","Overig / pauze"];
+&nbsp;&nbsp;labels.forEach((l,i)=>{
+&nbsp;&nbsp;&nbsp;&nbsp;out+=`${l}: ${fmt(accum[i])} (${(accum[i]/totalElapsed*100).toFixed(1)}%)\n`;
+&nbsp;&nbsp;});
+&nbsp;&nbsp;out+="\nVolledig logboek:\n";
+&nbsp;&nbsp;document.querySelectorAll('#log .logentry').forEach(e=>out+=e.textContent+"\n");
+&nbsp;&nbsp;document.querySelector('#result').textContent=out;
+&nbsp;&nbsp;document.querySelector('#result').style.display='block';
+};
+/* ----------------- RESET -------------------- */
+document.querySelector('#resetBtn').onclick=()=>{
+&nbsp;&nbsp;if(confirm("Alles wissen en opnieuw beginnen?")) location.reload();
+};
 </script>
-<script>
-/* ============================================================
-   V10 SCRIPT – DEEL 2
-   Timeline-rendering, lesdeel-labels, export, stop/reset
-   ============================================================ */
-
-
-/* ─────────────────────────────────────────────────────────────
-   TIMELINE RENDERING (segmenten naast elkaar)
-   ───────────────────────────────────────────────────────────── */
-function updateTimeline(){
-  timeline.innerHTML = "";
-
-  const total = totalElapsed > 0 ? totalElapsed : 1;
-
-  timelineSegments.forEach(seg => {
-    const end = seg.end === null ? totalElapsed : seg.end;
-    const width = ((end - seg.start) / total) * 100;
-
-    const d = document.createElement("div");
-    d.className = "seg";
-    d.style.width = width + "%";
-    d.style.background = colors[seg.cat];
-
-    timeline.appendChild(d);
-  });
-}
-
-
-/* ─────────────────────────────────────────────────────────────
-   LESDEEL LABEL RENDERING (exact boven segment)
-   ───────────────────────────────────────────────────────────── */
-function updateTimelineLabels(){
-  timelineLabels.innerHTML = "";
-
-  const total = totalElapsed > 0 ? totalElapsed : 1;
-
-  lessonParts.forEach(part => {
-    const pEnd = part.end !== null ? part.end : totalElapsed;
-    const width = ((pEnd - part.start) / total) * 100;
-
-    const lbl = document.createElement("div");
-    lbl.className = "timelineLabel";
-    lbl.style.width = width + "%";
-    lbl.textContent = part.label ? part.label.toUpperCase() : "LESDEEL";
-    timelineLabels.appendChild(lbl);
-  });
-}
-
-
-/* ============================================================
-   STOP FUNCTIE
-   ============================================================ */
-
-stopBtn.onclick = () => {
-  if(running){
-    tick();
-    running = false;
-  }
-
-  /* laatste segment afsluiten */
-  const lastSeg = timelineSegments[timelineSegments.length-1];
-  lastSeg.end = totalElapsed;
-
-  /* laatste lesdeel afsluiten */
-  if(currentPart){
-    currentPart.end = totalElapsed;
-  }
-
-  logL1("OBSERVATIE BEËINDIGD");
-
-  /* Exports tonen */
-  exportSection.style.display = "block";
-};
-
-
-/* ============================================================
-   EXPORT — KLEMBOARD
-   ============================================================ */
-
-copyBtn.onclick = () => {
-  const txt = generateExportText();
-  navigator.clipboard.writeText(txt)
-    .then(() => alert("Logboek gekopieerd naar klembord!"))
-    .catch(() => alert("Kopiëren mislukt."));
-};
-
-
-/* ============================================================
-   EXPORT — DOWNLOAD TXT
-   ============================================================ */
-
-downloadBtn.onclick = () => {
-  const txt = generateExportText();
-
-  const blob = new Blob([txt], {type:"text/plain"});
-  const url  = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-
-  const safeTitle = lessonTitle.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-  a.download = `observatie_${safeTitle}.txt`;
-
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-
-/* ============================================================
-   EXPORT TEXT GENERATOR
-   ============================================================ */
-
-function generateExportText(){
-  let out = "";
-
-  out += `LES: ${lessonTitle}\n`;
-  out += `LESGEVER(S): ${lessonTeacher}\n`;
-  if(lessonLocation) out += `LOCATIE / KLASGROEP: ${lessonLocation}\n`;
-  out += `\nTOTALE LESDUUR: ${fmt(totalElapsed)}\n\n`;
-
-  out += `--- VERDELING PER CATEGORIE ---\n`;
-  categories.forEach((c,i)=>{
-    const p = totalElapsed ? (accum[i]/totalElapsed*100).toFixed(1) : 0;
-    out += `${c}: ${fmt(accum[i])} (${p}%)\n`;
-  });
-
-  out += `\n--- LESDELEN ---\n`;
-  lessonParts.forEach(p=>{
-    const end = p.end !== null ? p.end : totalElapsed;
-    const name = p.label ? p.label.toUpperCase() : "LESDEEL";
-    out += `${name}: ${fmt(end - p.start)}\n`;
-  });
-
-  out += `\n--- VOLLEDIG LOGBOEK ---\n`;
-
-  document.querySelectorAll("#log div").forEach(div=>{
-    out += div.textContent + "\n";
-  });
-
-  return out;
-}
-
-
-/* ============================================================
-   RESET
-   ============================================================ */
-
-resetBtn.onclick = () => {
-  if(confirm("Alles wissen en opnieuw beginnen?")){
-    location.reload();
-  }
-};
-
-
-/* ============================================================
-   EINDE SCRIPT DEEL 2
-   ============================================================ */
-
-</script>
-
 </body>
 </html>
