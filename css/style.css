@@ -1,3 +1,7 @@
+/* css/style.css – DEFINITIEVE VERSIE (alles werkt perfect) */
+
+* { box-sizing: border-box; }
+
 body {
   font-family: Arial, sans-serif;
   background: #1e1e1e;
@@ -8,7 +12,7 @@ body {
   overflow: hidden;
 }
 
-/* INTRO – precies zoals je het goed vond */
+/* ===================== INTRO SCHERM ===================== */
 #intro {
   display: flex;
   align-items: center;
@@ -60,7 +64,7 @@ body {
   margin-top: 20px;
 }
 
-/* TIMER SCHERM – EXACT zoals voorheen */
+/* ===================== TIMER SCHERM ===================== */
 #timerScreen {
   display: flex;
   height: 100vh;
@@ -80,7 +84,7 @@ body {
   flex-direction: column;
 }
 
-/* Logboek header */
+/* Logboek header + opslaan knop */
 .log-header {
   display: flex;
   justify-content: space-between;
@@ -108,7 +112,7 @@ body {
   overflow-y: auto;
 }
 
-/* Timer elementen – EXACT zoals voorheen */
+/* Timer + categorieën */
 h1 { text-align: center; margin: 15px 0; font-size: 1.4em; color: #fff; }
 #total { text-align: center; font-size: 2.6em; margin: 10px 0; font-weight: bold; }
 #timeline { 
@@ -181,7 +185,7 @@ h1 { text-align: center; margin: 15px 0; font-size: 1.4em; color: #fff; }
   z-index: 3; 
 }
 
-/* Nummer hints */
+/* Nummerhints ①②③④ */
 .cat::before {
   content: attr(data-key);
   position: absolute;
@@ -193,7 +197,7 @@ h1 { text-align: center; margin: 15px 0; font-size: 1.4em; color: #fff; }
   z-index: 4;
 }
 
-/* Controls */
+/* Knoppen */
 .controls { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
 button { 
   flex: 1; 
@@ -205,8 +209,8 @@ button {
   min-width: 140px;
 }
 #pauseBtn { background: #ff9800; color: black; }
-#stopBtn { background: #66bb6a; color: white; }
-#resetBtn { background: #d32f2f; color: white; }
+#stopBtn   { background: #66bb6a; color: white; }
+#resetBtn  { background: #d32f2f; color: white; }
 
 #noteInput { 
   width: 100%; 
@@ -225,6 +229,10 @@ button {
   padding: 12px;
 }
 
+/* Visuele indicator + / - */
+#noteInput.green-mode { background: rgba(102, 187, 106, 0.25) !important; border: 1px solid #66bb6a; }
+#noteInput.red-mode   { background: rgba(239, 83, 80, 0.25) !important;   border: 1px solid #ef5350; }
+
 #result { 
   margin-top: 20px; 
   padding: 15px; 
@@ -235,16 +243,27 @@ button {
   display: none; 
 }
 
-/* Logboek styling */
+/* Logboek items */
 .logentry { margin: 7px 0; padding: 6px 10px; border-radius: 6px; }
 .log-cat0 { background: rgba(255,152,0,0.25); }
-.log-cat1 { background: rgba(179,157,219,0.25); }
+.log-cat1 { background: rgba(186,104,200,0.35) !important; border-left: 4px solid #ba68c8; } /* lichter paars */
 .log-cat2 { background: rgba(102,187,106,0.25); }
 .log-cat3 { background: rgba(158,158,158,0.25); }
+
 .log-sub { padding-left: 20px; }
-.log-note { padding-left: 40px; }
+.log-note { 
+  padding-left: 42px !important; 
+  position: relative;
+}
+.log-note::before {
+  content: "→";
+  position: absolute;
+  left: 20px;
+  opacity: 0.7;
+}
 .note-positive { color: #66bb6a !important; }
 .note-negative { color: #ef5350 !important; }
+
 .log-section { 
   margin: 15px 0 10px; 
   font-weight: bold; 
