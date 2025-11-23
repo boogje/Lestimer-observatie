@@ -1,4 +1,4 @@
-// js/main.js – DEFINITIEVE VERSIE MET Checkmark EN ✗ (100% zichtbaar overal)
+// js/main.js – DEFINITIEVE VERSIE MET ANNULEREN VIA NOGMAALS + OF -
 
 import { categories } from './config.js';
 import { buildCategories, updateDisplay } from './ui.js';
@@ -41,9 +41,8 @@ export function initApp() {
 
     buildCategories(categories);
 
-    // Nummerhints ①②③④
     document.querySelectorAll('.cat').forEach((cat, i) => {
-      cat.dataset.key = ['①','②','③','④'][i];
+      cat.dataset.key = ['One','Two','Three','Four'][i];
       if (i === 0) cat.style.background = categories[0].color;
     });
 
@@ -59,7 +58,6 @@ export function initApp() {
       hour: '2-digit', minute: '2-digit', second: '2-digit'
     });
 
-    // Logboek structuur
     const log = document.getElementById('log');
     log.innerHTML = '';
 
@@ -68,13 +66,8 @@ export function initApp() {
     title.textContent = 'LESOBSERVATIE';
     log.appendChild(title);
 
-    const infoLines = [
-      `Lesonderwerp: ${state.info.subject}`,
-      `Lesgever: ${state.info.teacher}`,
-      `Doelgroep: ${state.info.group}`,
-      `Tijdstip: observatie gestart op ${startTime}`
-    ];
-    infoLines.forEach(line => {
+    ['Lesonderwerp', 'Lesgever', 'Doelgroep', `Tijdstip: observatie gestart op ${startTime}`].forEach((txt, i) => {
+      const line = i < 3 ? `${['Lesonderwerp', 'Lesgever', 'Doelgroep'][i]}: ${state.info[['subject','teacher','group'][i]]}` : txt;
       const div = document.createElement('div');
       div.className = 'logentry info';
       div.textContent = line;
@@ -90,10 +83,11 @@ export function initApp() {
     log.appendChild(sectionDiv);
   };
 
-  // === TOETSENBORD ===
+  // === TOETSENBORD – MET ANNULEREN VIA NOGMAALS + OF - ===
   document.addEventListener('keydown', e => {
     if (!state.running) return;
 
+    // Categorieën 1-4
     if (e.key >= '1' && e.key <= '4') {
       const index = parseInt(e.key) - 1;
       document.querySelectorAll('.cat')[index]?.click();
@@ -101,20 +95,49 @@ export function initApp() {
       return;
     }
 
-    if (e.key === '+') {
-      state.nextNotePositive = true;
-      state.nextNoteNegative = false;
-      noteInput.classList.remove('red-mode');
-      noteInput.classList.add('green-mode');
-      noteInput.focus();
-      e.preventDefault();
-      return;
-    }
-    if (e.key === '-') {
-      state.nextNoteNegative = true;
-      state.nextNotePositive = false;
-      noteInput.classList.remove('green-mode');
-      noteInput.classList.add('red-mode');
+    // + en - : toggle/annuleren
+    if (e.key === '+' || e.key === '-') {
+      if (e.key === '+') {
+        if (state.nextNotePositive) {
+          // ANNULEREN
+          state.nextNotePositive = false;
+          state.nextNoteNegative = false;
+          noteInput.classList.remove('green-mode', 'red-mode');
+          noteInput.placeholder = "Typ notitie… (groen geannuleerd)";
+        } else {
+          // ACTIVEREN GROEN
+          state.nextNotePositive = true;
+          state.nextNoteNegative = false;
+          noteInput.classList.remove('red-mode');
+          noteInput.classList.add('green-mode');
+          noteInput.placeholder = "Typ notitie… (groen actief – druk nogmaals + om te annuleren)";
+        }
+      }
+
+      if (e.key === '-') {
+        if (state.nextNoteNegative) {
+          // ANNULEREN
+          state.nextNotePositive = false;
+          state.nextNoteNegative = false;
+          noteInput.classList.remove('green-mode', 'red-mode');
+          noteInput.placeholder = "Typ notitie… (rood geannuleerd)";
+        } else {
+          // ACTIVEREN ROOD
+          state.nextNoteNegative = true;
+          state.nextNotePositive = false;
+          noteInput.classList.remove('green-mode');
+          noteInput.classList.add('red-mode');
+          noteInput.placeholder = "Typ notitie… (rood actief – druk nogmaals - om te annuleren)";
+        }
+      }
+
+      // Placeholder terug na 2 seconden
+      setTimeout(() => {
+        if (!state.nextNotePositive && !state.nextNoteNegative) {
+          noteInput.placeholder = "Typ notitie… (+ groen / - rood)";
+        }
+      }, 2000);
+
       noteInput.focus();
       e.preventDefault();
       return;
@@ -126,18 +149,18 @@ export function initApp() {
     }
   });
 
-  // === NOTITIES MET Checkmark EN ✗ (jouw favoriet) ===
+  // === NOTITIES MET Checkmark EN ✗ ===
   window.addNoteToLog = (text) => {
     const entry = document.createElement('div');
     entry.className = 'logentry log-note';
 
     let prefix = '→ ';
     if (state.nextNotePositive) {
-      prefix = 'Checkmark  ';          // écht Unicode: Checkmark
+      prefix = 'Checkmark  ';
       entry.classList.add('note-positive');
     }
     if (state.nextNoteNegative) {
-      prefix = '✗  ';          // écht Unicode: ✗
+      prefix = '✗  ';
       entry.classList.add('note-negative');
     }
 
@@ -147,12 +170,14 @@ export function initApp() {
     document.getElementById('log').appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth' });
 
+    // Reset na verzenden
     state.nextNotePositive = state.nextNoteNegative = false;
     noteInput.classList.remove('green-mode', 'red-mode');
     noteInput.value = '';
+    noteInput.placeholder = "Typ notitie… (+ groen / - rood)";
   };
 
-  // === CATEGORIE WISSEL ===
+  // === REST VAN DE CODE (categorie wissel, timer, opslaan, stop…) ===
   document.addEventListener('click', e => {
     const cat = e.target.closest('.cat');
     if (!cat || !state.running) return;
@@ -161,7 +186,6 @@ export function initApp() {
     addSegment(state, state.active);
 
     const newCatId = +cat.dataset.id;
-
     if ([0, 1].includes(newCatId) && ![0, 1].includes(state.active)) {
       state.currentSection++;
       const sectionDiv = document.createElement('div');
@@ -188,7 +212,6 @@ export function initApp() {
     entry.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // === TIMER ===
   setInterval(() => {
     if (!state.running) return;
     const now = Date.now();
@@ -199,17 +222,14 @@ export function initApp() {
     updateDisplay(state);
   }, 200);
 
-  // === PAUZE ===
   document.getElementById('pauseBtn').onclick = () => {
     state.running = !state.running;
     document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
     if (state.running) state.lastSwitch = Date.now();
   };
 
-  // === OPSLAAN ===
   document.getElementById('saveLogBtn').onclick = () => {
-    let content = `LESOBSERVATIE – ${new Date().toLocaleDateString('nl-BE')}\n`;
-    content += `${'='.repeat(60)}\n\n`;
+    let content = `LESOBSERVATIE – ${new Date().toLocaleDateString('nl-BE')}\n${'='.repeat(60)}\n\n`;
     content += `Lesonderwerp: ${state.info.subject}\nLesgever: ${state.info.teacher}\nDoelgroep: ${state.info.group}\n\n`;
     content += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\nTIJDVERDELING\n${'-'.repeat(30)}\n`;
     categories.forEach((cat, i) => {
@@ -235,7 +255,6 @@ export function initApp() {
     URL.revokeObjectURL(url);
   };
 
-  // === STOP ===
   document.getElementById('stopBtn').onclick = () => {
     state.running = false;
     closeLastSegment(state);
