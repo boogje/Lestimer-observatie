@@ -1,10 +1,10 @@
-// js/main.js – DEFINITIEVE VERSIE MET ALLE FUNCTIES
+// js/main.js – DEFINITIEVE VERSIE MET ALLE FIXES
 
 import { categories } from './config.js';
 import { buildCategories, updateDisplay } from './ui.js';
 import { addSegment, closeLastSegment } from './timeline.js';
 import { initNotes } from './notes.js';
-import { formatTime, addLog } from './helpers.js';
+import { formatTime,  addLog } from './helpers.js';
 
 window.state = {
   running: false,
@@ -25,6 +25,7 @@ let lastSegmentDuration = 0;
 
 export function initApp() {
   const state = window.state;
+  const noteInput = document.getElementById('noteInput');
 
   // === START OBSERVATIE ===
   document.getElementById('startObservationBtn').onclick = () => {
@@ -40,7 +41,7 @@ export function initApp() {
 
     buildCategories(categories);
 
-    // Voeg nummerhints toe: ① ② ③ ④
+    // Nummerhints ①②③④
     document.querySelectorAll('.cat').forEach((cat, i) => {
       cat.dataset.key = ['①','②','③','④'][i];
       if (i === 0) cat.style.background = categories[0].color;
@@ -53,17 +54,24 @@ export function initApp() {
       document.getElementById(id).classList.remove('hidden');
     });
 
+    // Lesdeel 1 begint meteen
+    state.currentSection = 1;
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'log-section';
+    sectionDiv.textContent = 'Lesdeel 1';
+    document.getElementById('log').appendChild(sectionDiv);
+
+    // Intro-info zonder timestamp
     addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
     addLog(`Lesgever: ${state.info.teacher}`, 'info');
     addLog(`Doelgroep: ${state.info.group}`, 'info');
     addLog('Observatie gestart', 'start');
   };
 
-  // === TOETSENBORD BESTURING ===
+  // === TOETSENBORD ===
   document.addEventListener('keydown', e => {
     if (!state.running) return;
 
-    // Categorieën 1-4
     if (e.key >= '1' && e.key <= '4') {
       const index = parseInt(e.key) - 1;
       document.querySelectorAll('.cat')[index]?.click();
@@ -71,31 +79,33 @@ export function initApp() {
       return;
     }
 
-    // + = groen, - = rood
+    // + groen, - rood → visuele feedback + onthouden
     if (e.key === '+') {
       state.nextNotePositive = true;
       state.nextNoteNegative = false;
-      document.getElementById('noteInput').focus();
+      noteInput.classList.remove('red-mode');
+      noteInput.classList.add('green-mode');
+      noteInput.focus();
       e.preventDefault();
       return;
     }
     if (e.key === '-') {
       state.nextNoteNegative = true;
       state.nextNotePositive = false;
-      document.getElementById('noteInput').focus();
+      noteInput.classList.remove('green-mode');
+      noteInput.classList.add('red-mode');
+      noteInput.focus();
       e.preventDefault();
       return;
     }
 
-    // Elke andere toets → focus op notitieveld
-    const input = document.getElementById('noteInput');
-    input.focus();
-    if (e.key === 'Enter' && input.value.trim()) {
+    noteInput.focus();
+    if (e.key === 'Enter' && noteInput.value.trim()) {
       document.getElementById('noteBtn').click();
     }
   });
 
-  // === NOTITIES MET KLEUR ===
+  // === NOTITIES MET KLEUR + RESET VAN MODUS ===
   window.addNoteToLog = (text) => {
     const entry = document.createElement('div');
     entry.className = 'logentry log-note';
@@ -104,7 +114,11 @@ export function initApp() {
     entry.textContent = `→ ${text}`;
     document.getElementById('log').appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth' });
+
+    // Reset kleurmodus + visuele feedback
     state.nextNotePositive = state.nextNoteNegative = false;
+    noteInput.classList.remove('green-mode', 'red-mode');
+    noteInput.value = '';
   };
 
   // === CATEGORIE WISSEL ===
@@ -115,8 +129,10 @@ export function initApp() {
     lastSegmentDuration = Date.now() - state.segmentStart;
     addSegment(state, state.active);
 
-    // Nieuw lesdeel bij start Instructie & uitleg (categorie 1)
-    if (state.active === 1 && parseInt(cat.dataset.id) !== 1) {
+    const newCatId = +cat.dataset.id;
+
+    // Nieuw lesdeel bij start Organisatie (0) of Instructie (1)
+    if ([0, 1].includes(newCatId) && ![0, 1].includes(state.active)) {
       state.currentSection++;
       const sectionDiv = document.createElement('div');
       sectionDiv.className = 'log-section';
@@ -129,7 +145,7 @@ export function initApp() {
       c.style.background = '#333';
     });
 
-    state.active = +cat.dataset.id;
+    state.active = newCatId;
     cat.classList.add('active');
     cat.style.background = categories[state.active].color;
     state.segmentStart = Date.now();
@@ -142,7 +158,7 @@ export function initApp() {
     entry.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // === TIMER LOOP ===
+  // === TIMER, PAUZE, OPSLAAN, STOP → blijven zoals voorheen ===
   setInterval(() => {
     if (!state.running) return;
     const now = Date.now();
@@ -153,7 +169,6 @@ export function initApp() {
     updateDisplay(state);
   }, 200);
 
-  // === PAUZE ===
   document.getElementById('pauseBtn').onclick = () => {
     state.running = !state.running;
     document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
@@ -161,7 +176,6 @@ export function initApp() {
     addLog(state.running ? '→ Hervat' : '→ Gepauzeerd', 'note');
   };
 
-  // === OPSLAAN ALS .TXT ===
   document.getElementById('saveLogBtn').onclick = () => {
     let content = `SPORTLES OBSERVATIE – ${new Date().toLocaleDateString('nl-BE')}\n`;
     content += `${'='.repeat(60)}\n\n`;
@@ -192,12 +206,10 @@ export function initApp() {
     URL.revokeObjectURL(url);
   };
 
-  // === STOP & RESULTATEN ===
   document.getElementById('stopBtn').onclick = () => {
     state.running = false;
     closeLastSegment(state);
     addLog('Observatie beëindigd');
-
     document.getElementById('pauseBtn').classList.add('hidden');
     document.getElementById('stopBtn').classList.add('hidden');
     document.getElementById('resetBtn').classList.remove('hidden');
