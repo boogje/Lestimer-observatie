@@ -2,43 +2,63 @@
 <html lang="nl">
 <head>
   <meta charset="utf-8">
-  <title>Sportles Observatie Timer – Modulair</title>
+  <title>Sportles Observatie Timer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<main>
-  <h1>Sportles Observatie Timer</h1>
-  <div id="total">00:00</div>
-  <div id="timeline"></div>
-
-  <!-- Categorieën worden dynamisch ingevuld via JavaScript -->
-  <div id="categories-container"></div>
-
-  <div class="controls">
-    <button id="startBtn">Start observatie</button>
-    <button id="pauseBtn" class="hidden">Pauze</button>
-    <button id="stopBtn" class="hidden">Stop & resultaten</button>
-    <button id="resetBtn" class="hidden">Reset</button>
+<!-- INTRO SCHERM -->
+<div id="intro" class="screen">
+  <h1>Sportles Observatie</h1>
+  <div class="intro-form">
+    <div class="field">
+      <label>Lesonderwerp</label>
+      <input type="text" id="subject" placeholder="Bv. Handbal – passing en vangen">
+    </div>
+    <div class="field">
+      <label>Lesgever</label>
+      <input type="text" id="teacher" placeholder="Bv. Juf Annelies">
+    </div>
+    <div class="field">
+      <label>Doelgroep</label>
+      <input type="text" id="group" placeholder="Bv. 5de leerjaar – 22 leerlingen">
+    </div>
+    <button id="startObservationBtn" class="big-btn">Start observatie</button>
   </div>
+</div>
 
-  <input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
-  <button id="noteBtn" class="hidden">Notitie toevoegen</button>
+<!-- TIMER SCHERM (wordt zichtbaar na start) -->
+<div id="timerScreen" class="screen hidden">
+  <main>
+    <h1 id="pageTitle">Sportles Observatie Timer</h1>
+    <div id="total">00:00</div>
+    <div id="timeline"></div>
+    <div id="categories-container"></div>
 
-  <div id="result"></div>
-</main>
+    <div class="controls">
+      <button id="pauseBtn" class="hidden">Pauze</button>
+      <button id="stopBtn" class="hidden">Stop & resultaten</button>
+      <button id="resetBtn" class="hidden">Reset</button>
+    </div>
 
-<aside>
-  <h3>Logboek</h3>
-  <div id="log"></div>
-</aside>
+    <input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
+    <button id="noteBtn" class="hidden">Notitie toevoegen</button>
+
+    <div id="result"></div>
+  </main>
+
+  <aside>
+    <h3>Logboek</h3>
+    <div id="log"></div>
+  </aside>
+</div>
 
 <script type="module">
   import { categories } from './js/config.js';
   import { initApp } from './js/main.js';
 
-  // Start de hele app
+  // Start de app met intropagina
   initApp(categories);
 </script>
 
