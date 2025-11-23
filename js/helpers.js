@@ -12,24 +12,23 @@ export function formatTime(ms) {
 }
 
 // Voegt een regel toe aan het logboek
-export function addLog(text, type = 'note', categoryIndex = null) {
-  const log = document.getElementById('log');
+export function addLog(text, type = 'normal') {
   const entry = document.createElement('div');
   entry.className = 'logentry';
   
-  if (type === 'cat' && categoryIndex !== null) {
-    entry.classList.add(`log-cat${categoryIndex}`);
-  }
-  if (type === 'note') {
-    entry.classList.add('note');
+  if (type === 'info') {
+    entry.classList.add('info');
+    entry.textContent = text;
+  } else if (type === 'start') {
+    entry.textContent = text;
+    entry.style.color = '#66bb6a';
+    entry.style.fontWeight = 'bold';
+  } else {
+    entry.textContent = text;
+    if (type === 'note') entry.classList.add('log-note');
+    if (type === 'sub') entry.classList.add('log-sub');
   }
 
-  // Alleen bij "start" echte kloktijd, anders lestijd
-  const timestamp = type === 'start'
-    ? new Date().toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    : formatTime(window.state.totalElapsed);
-
-  entry.textContent = `[${timestamp}] ${text}`;
-  log.appendChild(entry);
+  document.getElementById('log').appendChild(entry);
   entry.scrollIntoView({ behavior: 'smooth' });
 }
