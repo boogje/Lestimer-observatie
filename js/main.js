@@ -1,10 +1,10 @@
-// js/main.js – DEFINITIEVE VERSIE MET ALLE FIXES
+// js/main.js – DEFINITIEVE VERSIE MET Checkmark EN ✗ (100% zichtbaar overal)
 
 import { categories } from './config.js';
 import { buildCategories, updateDisplay } from './ui.js';
 import { addSegment, closeLastSegment } from './timeline.js';
 import { initNotes } from './notes.js';
-import { formatTime,  addLog } from './helpers.js';
+import { formatTime } from './helpers.js';
 
 window.state = {
   running: false,
@@ -27,67 +27,68 @@ export function initApp() {
   const state = window.state;
   const noteInput = document.getElementById('noteInput');
 
- // === START OBSERVATIE === (vervang deze functie volledig)
-document.getElementById('startObservationBtn').onclick = () => {
-  state.info = {
-    subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
-    teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
-    group:   document.getElementById('group').value.trim()   || "Onbekende groep"
+  // === START OBSERVATIE ===
+  document.getElementById('startObservationBtn').onclick = () => {
+    state.info = {
+      subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
+      teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
+      group:   document.getElementById('group').value.trim()   || "Onbekende groep"
+    };
+
+    document.getElementById('pageTitle').textContent = state.info.subject;
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('timerScreen').classList.remove('hidden');
+
+    buildCategories(categories);
+
+    // Nummerhints ①②③④
+    document.querySelectorAll('.cat').forEach((cat, i) => {
+      cat.dataset.key = ['①','②','③','④'][i];
+      if (i === 0) cat.style.background = categories[0].color;
+    });
+
+    state.running = true;
+    state.lastSwitch = state.segmentStart = Date.now();
+
+    ['pauseBtn','stopBtn','saveLogBtn','noteInput','noteBtn'].forEach(id => {
+      document.getElementById(id).classList.remove('hidden');
+    });
+
+    const startTime = new Date().toLocaleString('nl-BE', {
+      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    // Logboek structuur
+    const log = document.getElementById('log');
+    log.innerHTML = '';
+
+    const title = document.createElement('div');
+    title.className = 'log-title';
+    title.textContent = 'LESOBSERVATIE';
+    log.appendChild(title);
+
+    const infoLines = [
+      `Lesonderwerp: ${state.info.subject}`,
+      `Lesgever: ${state.info.teacher}`,
+      `Doelgroep: ${state.info.group}`,
+      `Tijdstip: observatie gestart op ${startTime}`
+    ];
+    infoLines.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'logentry info';
+      div.textContent = line;
+      log.appendChild(div);
+    });
+
+    log.appendChild(document.createElement('br'));
+
+    state.currentSection = 1;
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'log-section';
+    sectionDiv.textContent = 'LESDEEL 1';
+    log.appendChild(sectionDiv);
   };
-
-  document.getElementById('pageTitle').textContent = state.info.subject;
-  document.getElementById('intro').classList.add('hidden');
-  document.getElementById('timerScreen').classList.remove('hidden');
-
-  buildCategories(categories);
-
-  // Nummerhints
-  document.querySelectorAll('.cat').forEach((cat, i) => {
-    cat.dataset.key = ['①','②','③','④'][i];
-    if (i === 0) cat.style.background = categories[0].color;
-  });
-
-  state.running = true;
-  state.lastSwitch = state.segmentStart = Date.now();
-
-  ['pauseBtn','stopBtn','saveLogBtn','noteInput','noteBtn'].forEach(id => {
-    document.getElementById(id).classList.remove('hidden');
-  });
-
-  const startTime = new Date().toLocaleString('nl-BE', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-
-  // ==== PERFECTE LOGBOEK STRUCTUUR ====
-  const log = document.getElementById('log');
-  log.innerHTML = ''; // leegmaken
-
-  // Hoofdtitel
-  const title = document.createElement('div');
-  title.className = 'log-title';
-  title.textContent = 'LESOBSERVATIE';
-  log.appendChild(title);
-
-  // Intro-info zonder timestamp
-  addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
-  addLog(`Lesgever: ${state.info.teacher}`, 'info');
-  addLog(`Doelgroep: ${state.info.group}`, 'info');
-  addLog(`Tijdstip: observatie gestart op ${startTime}`, 'info');
-
-  // Lege regel + Lesdeel 1
-  log.appendChild(document.createElement('br'));
-  state.currentSection = 1;
-  const sectionDiv = document.createElement('div');
-  sectionDiv.className = 'log-section';
-  sectionDiv.textContent = 'LESDEEL 1';
-  log.appendChild(sectionDiv);
-};
 
   // === TOETSENBORD ===
   document.addEventListener('keydown', e => {
@@ -100,7 +101,6 @@ document.getElementById('startObservationBtn').onclick = () => {
       return;
     }
 
-    // + groen, - rood → visuele feedback + onthouden
     if (e.key === '+') {
       state.nextNotePositive = true;
       state.nextNoteNegative = false;
@@ -126,17 +126,27 @@ document.getElementById('startObservationBtn').onclick = () => {
     }
   });
 
-  // === NOTITIES MET KLEUR + RESET VAN MODUS ===
+  // === NOTITIES MET Checkmark EN ✗ (jouw favoriet) ===
   window.addNoteToLog = (text) => {
     const entry = document.createElement('div');
     entry.className = 'logentry log-note';
-    if (state.nextNotePositive) entry.classList.add('note-positive');
-    if (state.nextNoteNegative) entry.classList.add('note-negative');
-    entry.textContent = `→ ${text}`;
+
+    let prefix = '→ ';
+    if (state.nextNotePositive) {
+      prefix = 'Checkmark  ';          // écht Unicode: Checkmark
+      entry.classList.add('note-positive');
+    }
+    if (state.nextNoteNegative) {
+      prefix = '✗  ';          // écht Unicode: ✗
+      entry.classList.add('note-negative');
+    }
+
+    const currentTime = formatTime(state.totalElapsed);
+    entry.textContent = `[${currentTime}] ${prefix}${text.trim()}`;
+
     document.getElementById('log').appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth' });
 
-    // Reset kleurmodus + visuele feedback
     state.nextNotePositive = state.nextNoteNegative = false;
     noteInput.classList.remove('green-mode', 'red-mode');
     noteInput.value = '';
@@ -152,12 +162,11 @@ document.getElementById('startObservationBtn').onclick = () => {
 
     const newCatId = +cat.dataset.id;
 
-    // Nieuw lesdeel bij start Organisatie (0) of Instructie (1)
     if ([0, 1].includes(newCatId) && ![0, 1].includes(state.active)) {
       state.currentSection++;
       const sectionDiv = document.createElement('div');
       sectionDiv.className = 'log-section';
-      sectionDiv.textContent = `Lesdeel ${state.currentSection}`;
+      sectionDiv.textContent = `LESDEEL ${state.currentSection}`;
       document.getElementById('log').appendChild(sectionDiv);
     }
 
@@ -179,7 +188,7 @@ document.getElementById('startObservationBtn').onclick = () => {
     entry.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // === TIMER, PAUZE, OPSLAAN, STOP → blijven zoals voorheen ===
+  // === TIMER ===
   setInterval(() => {
     if (!state.running) return;
     const now = Date.now();
@@ -190,21 +199,19 @@ document.getElementById('startObservationBtn').onclick = () => {
     updateDisplay(state);
   }, 200);
 
+  // === PAUZE ===
   document.getElementById('pauseBtn').onclick = () => {
     state.running = !state.running;
     document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
     if (state.running) state.lastSwitch = Date.now();
-    addLog(state.running ? '→ Hervat' : '→ Gepauzeerd', 'note');
   };
 
+  // === OPSLAAN ===
   document.getElementById('saveLogBtn').onclick = () => {
-    let content = `SPORTLES OBSERVATIE – ${new Date().toLocaleDateString('nl-BE')}\n`;
+    let content = `LESOBSERVATIE – ${new Date().toLocaleDateString('nl-BE')}\n`;
     content += `${'='.repeat(60)}\n\n`;
-    content += `Lesonderwerp: ${state.info.subject}\n`;
-    content += `Lesgever:     ${state.info.teacher}\n`;
-    content += `Doelgroep:    ${state.info.group}\n\n`;
-    content += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\n`;
-    content += `TIJDVERDELING\n${'-'.repeat(30)}\n`;
+    content += `Lesonderwerp: ${state.info.subject}\nLesgever: ${state.info.teacher}\nDoelgroep: ${state.info.group}\n\n`;
+    content += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\nTIJDVERDELING\n${'-'.repeat(30)}\n`;
     categories.forEach((cat, i) => {
       const perc = state.totalElapsed ? (state.accum[i] / state.totalElapsed * 100).toFixed(1) : 0;
       content += `${cat.name}: ${formatTime(state.accum[i])} (${perc}%)\n`;
@@ -212,9 +219,10 @@ document.getElementById('startObservationBtn').onclick = () => {
     content += `\nLOGBOEK\n${'-'.repeat(30)}\n`;
     document.querySelectorAll('#log > div').forEach(el => {
       let line = el.textContent || '';
-      if (el.classList.contains('log-note')) line = '    ' + line;
+      if (el.classList.contains('log-note')) line = '   ' + line;
       if (el.classList.contains('log-sub')) line = '  ' + line;
-      if (el.classList.contains('log-section')) line = '\n' + line.toUpperCase();
+      if (el.classList.contains('log-section') || el.classList.contains('log-title')) line = '\n' + line.toUpperCase();
+      if (el.classList.contains('info')) line = '   ' + line;
       content += line + '\n';
     });
 
@@ -227,10 +235,10 @@ document.getElementById('startObservationBtn').onclick = () => {
     URL.revokeObjectURL(url);
   };
 
+  // === STOP ===
   document.getElementById('stopBtn').onclick = () => {
     state.running = false;
     closeLastSegment(state);
-    addLog('Observatie beëindigd');
     document.getElementById('pauseBtn').classList.add('hidden');
     document.getElementById('stopBtn').classList.add('hidden');
     document.getElementById('resetBtn').classList.remove('hidden');
