@@ -230,3 +230,46 @@ main { flex: 1; overflow-y: auto; padding: 12px; }
 #pageTitle {
   margin-bottom: 10px;
 }
+/* FIX: zorg dat het timer-scherm weer zij-aan-zij is */
+#timerScreen {
+  display: flex !important;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Zorg dat main en aside correct flexen */
+#timerScreen main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+#timerScreen aside {
+  width: 38%;
+  min-width: 300px;
+  padding: 12px 14px;
+  background: #1a1a1a;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+#timerScreen #log {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Mobiel: logboek onder timer */
+@media (max-width: 900px) {
+  #timerScreen {
+    flex-direction: column;
+  }
+  #timerScreen aside {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #333;
+  }
+}
