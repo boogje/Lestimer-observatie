@@ -1,0 +1,176 @@
+/* ===== Algemene layout & kleuren ===== */
+body {
+  font-family: Arial, sans-serif;
+  background: #1e1e1e;
+  color: #ddd;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 1.4em;
+  color: #fff;
+}
+
+#total {
+  text-align: center;
+  font-size: 2.6em;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+/* Timeline */
+#timeline {
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #222;
+  display: flex;
+  width: 100%;
+  margin: 15px 0;
+}
+.seg { height: 100%; }
+
+/* Categorie rijen */
+.row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.percBox {
+  width: 60px;
+  min-width: 60px;
+  font-weight: bold;
+  font-size: 1.1em;
+  background: #000;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+}
+
+/* Categorie knop */
+.cat {
+  flex: 1;
+  padding: 18px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: #333;
+  transition: all 0.25s;
+}
+.cat.active {
+  transform: scale(1.04);
+  box-shadow: 0 0 22px rgba(0,0,0,0.7);
+}
+.fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  opacity: 0.45;
+  transition: width 0.5s ease;
+}
+.label {
+  font-size: 1.35em;
+  font-weight: bold;
+  position: relative;
+  z-index: 2;
+}
+.desc {
+  font-size: 0.98em;
+  opacity: 0.85;
+  margin-top: 4px;
+  position: relative;
+  z-index: 2;
+}
+.time {
+  position: absolute;
+  right: 16px;
+  bottom: 10px;
+  font-size: 2em;
+  font-weight: bold;
+  z-index: 3;
+}
+
+/* Knoppen */
+.controls {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+button {
+  flex: 1;
+  padding: 15px;
+  font-size: 1.15em;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+#startBtn  { background:#4caf50; color:white; padding:22px; font-size:1.6em; }
+#pauseBtn  { background:#ff9800; color:black; }
+#stopBtn   { background:#66bb6a; color:white; }
+#resetBtn  { background:#d32f2f; color:white; }
+
+#noteInput {
+  width: 100%;
+  padding: 12px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 1em;
+  margin: 10px 0;
+}
+#noteBtn {
+  margin-top: 6px;
+  background: #555;
+  color: #fff;
+}
+
+/* Resultaat & log */
+#result {
+  margin-top: 20px;
+  padding: 15px;
+  background: #222;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  font-family: monospace;
+  display: none;
+}
+#log {
+  background: #111;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: monospace;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 0.96em;
+}
+.logentry {
+  margin: 7px 0;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+.log-cat0 { background: rgba(255,152,0,0.28); }
+.log-cat1 { background: rgba(179,157,219,0.28); }
+.log-cat2 { background: rgba(102,187,106,0.28); }
+.log-cat3 { background: rgba(158,158,158,0.28); }
+.note { padding-left: 26px; position: relative; }
+.note::before { content: "→"; position: absolute; left: 8px; opacity: 0.7; }
+
+.hidden { display: none !important; }
+
+main { flex: 1; overflow-y: auto; padding: 12px; }
+
+@media (min-width:900px) {
+  body { flex-direction: row; }
+  main { width: 62%; }
+  aside { width: 38%; padding-left: 14px; }
+}
