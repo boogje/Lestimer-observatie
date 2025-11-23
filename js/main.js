@@ -1,4 +1,4 @@
-// js/main.js – DEFINITIEVE VERSIE MET ANNULEREN VIA NOGMAALS + OF -
+// js/main.js – 100% WERKEND MET Checkmark/✗, KLEUR, EN AUTO-START ORGANISATIE
 
 import { categories } from './config.js';
 import { buildCategories, updateDisplay } from './ui.js';
@@ -41,9 +41,9 @@ export function initApp() {
 
     buildCategories(categories);
 
+    // Nummerhints
     document.querySelectorAll('.cat').forEach((cat, i) => {
       cat.dataset.key = ['One','Two','Three','Four'][i];
-      if (i === 0) cat.style.background = categories[0].color;
     });
 
     state.running = true;
@@ -61,6 +61,7 @@ export function initApp() {
     const log = document.getElementById('log');
     log.innerHTML = '';
 
+    // Hoofdtitel + info
     const title = document.createElement('div');
     title.className = 'log-title';
     title.textContent = 'LESOBSERVATIE';
@@ -76,18 +77,34 @@ export function initApp() {
 
     log.appendChild(document.createElement('br'));
 
+    // LESDEEL 1
     state.currentSection = 1;
     const sectionDiv = document.createElement('div');
     sectionDiv.className = 'log-section';
     sectionDiv.textContent = 'LESDEEL 1';
     log.appendChild(sectionDiv);
+
+    // AUTOMATISCH STARTEN MET "Organisatie & beheer" (categorie 0)
+    state.active = 0;
+    document.querySelectorAll('.cat').forEach(c => {
+      c.classList.remove('active');
+      c.style.background = '#333';
+    });
+    const firstCat = document.querySelector('.cat[data-id="0"]');
+    firstCat.classList.add('active');
+    firstCat.style.background = categories[0].color;
+
+    // Eerste logregel met timestamp
+    const firstEntry = document.createElement('div');
+    firstEntry.className = 'logentry log-sub log-cat0';
+    firstEntry.textContent = `[${formatTime(0)}] → ${categories[0].name}`;
+    log.appendChild(firstEntry);
   };
 
-  // === TOETSENBORD – MET ANNULEREN VIA NOGMAALS + OF - ===
+  // === TOETSENBORD – MET ANNULEREN ===
   document.addEventListener('keydown', e => {
     if (!state.running) return;
 
-    // Categorieën 1-4
     if (e.key >= '1' && e.key <= '4') {
       const index = parseInt(e.key) - 1;
       document.querySelectorAll('.cat')[index]?.click();
@@ -95,17 +112,13 @@ export function initApp() {
       return;
     }
 
-    // + en - : toggle/annuleren
     if (e.key === '+' || e.key === '-') {
       if (e.key === '+') {
         if (state.nextNotePositive) {
-          // ANNULEREN
-          state.nextNotePositive = false;
-          state.nextNoteNegative = false;
+          state.nextNotePositive = state.nextNoteNegative = false;
           noteInput.classList.remove('green-mode', 'red-mode');
           noteInput.placeholder = "Typ notitie… (groen geannuleerd)";
         } else {
-          // ACTIVEREN GROEN
           state.nextNotePositive = true;
           state.nextNoteNegative = false;
           noteInput.classList.remove('red-mode');
@@ -116,13 +129,10 @@ export function initApp() {
 
       if (e.key === '-') {
         if (state.nextNoteNegative) {
-          // ANNULEREN
-          state.nextNotePositive = false;
-          state.nextNoteNegative = false;
+          state.nextNotePositive = state.nextNoteNegative = false;
           noteInput.classList.remove('green-mode', 'red-mode');
           noteInput.placeholder = "Typ notitie… (rood geannuleerd)";
         } else {
-          // ACTIVEREN ROOD
           state.nextNoteNegative = true;
           state.nextNotePositive = false;
           noteInput.classList.remove('green-mode');
@@ -131,7 +141,6 @@ export function initApp() {
         }
       }
 
-      // Placeholder terug na 2 seconden
       setTimeout(() => {
         if (!state.nextNotePositive && !state.nextNoteNegative) {
           noteInput.placeholder = "Typ notitie… (+ groen / - rood)";
@@ -149,7 +158,7 @@ export function initApp() {
     }
   });
 
-  // === NOTITIES MET Checkmark EN ✗ ===
+  // === NOTITIES – NU MET CORRECTE KLEUR EN SYMBOOL ===
   window.addNoteToLog = (text) => {
     const entry = document.createElement('div');
     entry.className = 'logentry log-note';
@@ -157,11 +166,11 @@ export function initApp() {
     let prefix = '→ ';
     if (state.nextNotePositive) {
       prefix = 'Checkmark  ';
-      entry.classList.add('note-positive');
+      entry.classList.add('note-positive');   // groen + vet
     }
     if (state.nextNoteNegative) {
       prefix = '✗  ';
-      entry.classList.add('note-negative');
+      entry.classList.add('note-negative');   // rood + vet
     }
 
     const currentTime = formatTime(state.totalElapsed);
@@ -170,14 +179,14 @@ export function initApp() {
     document.getElementById('log').appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth' });
 
-    // Reset na verzenden
+    // Reset
     state.nextNotePositive = state.nextNoteNegative = false;
     noteInput.classList.remove('green-mode', 'red-mode');
     noteInput.value = '';
     noteInput.placeholder = "Typ notitie… (+ groen / - rood)";
   };
 
-  // === REST VAN DE CODE (categorie wissel, timer, opslaan, stop…) ===
+  // === CATEGORIE WISSEL ===
   document.addEventListener('click', e => {
     const cat = e.target.closest('.cat');
     if (!cat || !state.running) return;
@@ -186,6 +195,7 @@ export function initApp() {
     addSegment(state, state.active);
 
     const newCatId = +cat.dataset.id;
+
     if ([0, 1].includes(newCatId) && ![0, 1].includes(state.active)) {
       state.currentSection++;
       const sectionDiv = document.createElement('div');
@@ -212,6 +222,7 @@ export function initApp() {
     entry.scrollIntoView({ behavior: 'smooth' });
   });
 
+  // === TIMER, OPSLAAN, STOP – blijven werken ===
   setInterval(() => {
     if (!state.running) return;
     const now = Date.now();
