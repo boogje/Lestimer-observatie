@@ -10,7 +10,7 @@
 
 <!-- INTRO SCHERM -->
 <div id="intro">
-  <div class="intro-container">
+  <div class="intro-box">
     <h1>Sportles Observatie</h1>
     <div class="intro-form">
       <div class="field">
@@ -41,18 +41,20 @@
     <div class="controls">
       <button id="pauseBtn" class="hidden">Pauze</button>
       <button id="stopBtn" class="hidden">Stop & resultaten</button>
-      <button id="saveLogBtn" class="hidden">Opslaan als .txt</button>
       <button id="resetBtn" class="hidden">Reset</button>
     </div>
 
-    <input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
+    <input type="text" id="noteInput" class="hidden" placeholder="Typ notitie… (+ groen / - rood)">
     <button id="noteBtn" class="hidden">Notitie toevoegen</button>
 
     <div id="result"></div>
   </main>
 
   <aside>
-    <h3>Logboek</h3>
+    <div class="log-header">
+      <h3>Logboek</h3>
+      <button id="saveLogBtn" class="hidden" title="Opslaan als .txt">Opslaan</button>
+    </div>
     <div id="log"></div>
   </aside>
 </div>
@@ -65,4 +67,3 @@
 
 </body>
 </html>
-
