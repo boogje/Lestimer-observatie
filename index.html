@@ -2,100 +2,94 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>Sportles Observatie Timer v8</title>
+<title>Sportles Observatie Timer v9</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background:#1e1e1e; color:#ddd;
-    margin:0; padding:0;
-    display:flex; flex-direction:column;
-    height:100vh;
-  }
-
-  h1 { text-align:center; margin:15px 0; font-size:1.4em; color:#fff; }
-
-  #total { text-align:center; font-size:2.6em; margin:10px 0; font-weight:bold; }
+  body {font-family: Arial, sans-serif; background:#1e1e1e; color:#ddd; margin:0; padding:0; display:flex; flex-direction:column; height:100vh;}
+  h1 {text-align:center; margin:15px 0; font-size:1.4em; color:#fff;}
+  #total {text-align:center; font-size:2.6em; margin:10px 0; font-weight:bold;}
 
   /* TIMELINE */
   #timeline {
-    height:20px; border-radius:10px; overflow:hidden;
-    background:#222; display:flex; width:100%; margin:15px 0;
+    height:20px;
+    background:#222;
+    border-radius:10px;
+    overflow:hidden;
+    margin:15px 0;
+    width:100%;
+    display:flex;
   }
-  .seg { height:100%; }
+  .seg {height:100%; transition:width .25s linear;}
 
-  /* LAYOUT: percentages links in eigen kolom */
-  .row { display:flex; width:100%; margin-bottom:8px; }
-  .percBox {
-    width:60px; min-width:60px;
-    font-weight:bold; font-size:1.1em;
-    background:#000; border-radius:6px;
-    display:flex; align-items:center; justify-content:center;
-    margin-right:10px; height:100%;
-  }
-
-  /* CATEGORY BUTTON */
+  /* CATEGORIE KNOPPEN */
   .cat {
-    flex:1; padding:18px 16px;
-    border-radius:14px; cursor:pointer;
-    position:relative; overflow:hidden;
-    background:#333; transition:0.25s all;
+    position:relative;
+    padding:18px 16px 22px 16px;
+    margin:12px 0;
+    border-radius:14px;
+    cursor:pointer;
+    overflow:hidden;
+    background:#333;
   }
-  .cat.active { transform:scale(1.04); box-shadow:0 0 22px rgba(0,0,0,0.7); }
-
+  .cat.active {transform:scale(1.03); box-shadow:0 0 20px rgba(0,0,0,.7);}
   .fill {
-    position:absolute; left:0; top:0; bottom:0;
-    width:0%; opacity:0.45; transition:width 0.5s ease;
+    position:absolute;
+    inset:0;
+    width:0%;
+    opacity:.45;
+    transition:width .25s linear;
+  }
+  .label {font-size:1.35em; font-weight:bold; position:relative; z-index:2; margin-bottom:4px;}
+  .desc {font-size:.95em; opacity:.85; position:relative; z-index:2;}
+  .time {position:absolute; right:16px; bottom:14px; font-size:2.1em; font-weight:bold; z-index:2;}
+
+  .perc {
+    position:absolute;
+    left:16px;
+    top:10px;
+    font-size:1.05em;
+    font-weight:bold;
+    padding:3px 9px;
+    background:rgba(0,0,0,.65);
+    color:white;
+    border-radius:6px;
+    z-index:3;
   }
 
-  .label { font-size:1.35em; font-weight:bold; z-index:2; position:relative; }
-  .desc { z-index:2; position:relative; margin-top:4px; opacity:0.8; }
-  .time {
-    position:absolute; right:16px; bottom:10px;
-    font-size:2em; font-weight:bold; z-index:3;
-  }
+  .controls {display:flex; gap:10px; margin:15px 0; flex-wrap:wrap;}
+  button {flex:1; padding:15px; font-size:1.15em; border:none; border-radius:10px;}
 
-  /* Controls */
-  .controls { display:flex; gap:10px; margin:15px 0; }
-  button {
-    flex:1; padding:15px; font-size:1.15em;
-    border:none; border-radius:10px;
-  }
-  #startBtn { background:#4caf50; color:white; padding:22px; font-size:1.6em; }
-  #pauseBtn { background:#ff9800; color:black; }
-  #stopBtn  { background:#66bb6a; color:white; }
-  #resetBtn { background:#d32f2f; color:white; }
+  #startBtn {background:#4caf50; color:white; font-size:1.5em; padding:22px;}
+  #pauseBtn {background:#ff9800; color:black;}
+  #stopBtn  {background:#66bb6a; color:white;}
+  #resetBtn {background:#d32f2f; color:white;}
 
   #noteInput {
-    width:100%; padding:12px;
-    background:#222; border:1px solid #444;
-    border-radius:8px; color:white; font-size:1em;
+    width:100%; padding:12px; margin:10px 0;
+    background:#222; color:#fff; border:1px solid #444; border-radius:8px;
   }
-  #noteBtn { margin-top:6px; background:#555; color:#fff; }
+  #noteBtn {background:#555; color:white;}
 
   /* LOG */
-  #log {
-    background:#111; border-radius:10px;
-    padding:12px; font-family:monospace;
-    overflow-y:auto; flex:1; font-size:0.96em;
-  }
-  .logentry { margin:7px 0; padding:5px 10px; border-radius:5px; }
-  .log-cat0 { background:rgba(255,152,0,0.28); }
-  .log-cat1 { background:rgba(179,157,219,0.28); }
-  .log-cat2 { background:rgba(102,187,106,0.28); }
-  .log-cat3 { background:rgba(158,158,158,0.28); }
+  #log {background:#111; border-radius:10px; padding:12px; font-family:monospace;
+        font-size:.98em; overflow-y:auto; flex:1;}
 
-  .note { padding-left:26px; position:relative; }
-  .note::before { content:"→"; position:absolute; left:8px; opacity:0.7; }
+  .logentry {margin:8px 0; padding:5px 10px; border-radius:5px;}
+  .log-cat0 {background:rgba(255,152,0,.26);}
+  .log-cat1 {background:rgba(179,157,219,.26);}
+  .log-cat2 {background:rgba(102,187,106,.26);}
+  .log-cat3 {background:rgba(158,158,158,.26);}
+  .note {padding-left:28px; position:relative;}
+  .note::before {content:"→"; position:absolute; left:8px; opacity:.7;}
 
-  .hidden { display:none !important; }
+  .hidden {display:none!important;}
 
-  main { flex:1; overflow-y:auto; padding:12px; }
-  @media(min-width:900px){
-    body{ flex-direction:row; }
-    main{ width:62%; }
-    aside{ width:38%; padding-left:14px; }
+  main {flex:1; overflow-y:auto; padding:10px;}
+  @media (min-width: 900px) {
+    body {flex-direction:row;}
+    main {width:62%; padding-right:8px;}
+    aside {width:38%; padding-left:8px;}
   }
 </style>
 </head>
@@ -107,45 +101,37 @@
   <div id="total">00:00</div>
   <div id="timeline"></div>
 
-  <!-- CATEGORY ROWS -->
-  <div class="row">
-    <div class="percBox" id="perc0">0%</div>
-    <div class="cat active" data-id="0">
-      <div class="fill" style="background:#e65100"></div>
-      <div class="label">Organisatie & beheer</div>
-      <div class="desc">materiaal klaarzetten, wachten, orde herstellen…</div>
-      <div class="time" id="t0">0:00</div>
-    </div>
+  <!-- Categorie knoppen -->
+  <div class="cat active" data-id="0">
+    <div class="fill" style="background:#e65100"></div>
+    <div class="perc" id="p0">0%</div>
+    <div class="label">Organisatie & beheer</div>
+    <div class="desc">materiaal klaarzetten, wachten, orde herstellen…</div>
+    <div class="time" id="t0">0:00</div>
   </div>
 
-  <div class="row">
-    <div class="percBox" id="perc1">0%</div>
-    <div class="cat" data-id="1">
-      <div class="fill" style="background:#7e57c2"></div>
-      <div class="label">Instructie & uitleg</div>
-      <div class="desc">leerkracht praat, leerlingen luisteren</div>
-      <div class="time" id="t1">0:00</div>
-    </div>
+  <div class="cat" data-id="1">
+    <div class="fill" style="background:#7e57c2"></div>
+    <div class="perc" id="p1">0%</div>
+    <div class="label">Instructie & uitleg</div>
+    <div class="desc">leerkracht praat, leerlingen luisteren…</div>
+    <div class="time" id="t1">0:00</div>
   </div>
 
-  <div class="row">
-    <div class="percBox" id="perc2">0%</div>
-    <div class="cat" data-id="2">
-      <div class="fill" style="background:#43a047"></div>
-      <div class="label">Actieve leertijd</div>
-      <div class="desc">leerlingen motorisch bezig</div>
-      <div class="time" id="t2">0:00</div>
-    </div>
+  <div class="cat" data-id="2">
+    <div class="fill" style="background:#43a047"></div>
+    <div class="perc" id="p2">0%</div>
+    <div class="label">Actieve leertijd</div>
+    <div class="desc">leerlingen motorisch bezig met de leerinhoud…</div>
+    <div class="time" id="t2">0:00</div>
   </div>
 
-  <div class="row">
-    <div class="percBox" id="perc3">0%</div>
-    <div class="cat" data-id="3">
-      <div class="fill" style="background:#616161"></div>
-      <div class="label">Overig / pauze</div>
-      <div class="desc">drinken, blessure, onderbreking…</div>
-      <div class="time" id="t3">0:00</div>
-    </div>
+  <div class="cat" data-id="3">
+    <div class="fill" style="background:#616161"></div>
+    <div class="perc" id="p3">0%</div>
+    <div class="label">Overig / pauze</div>
+    <div class="desc">onderbreking, blessure, drinken…</div>
+    <div class="time" id="t3">0:00</div>
   </div>
 
   <div class="controls">
@@ -155,10 +141,10 @@
     <button id="resetBtn" class="hidden">Reset</button>
   </div>
 
-  <input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
+  <input id="noteInput" class="hidden" type="text" placeholder="Opmerking typen…">
   <button id="noteBtn" class="hidden">Notitie toevoegen</button>
 
-  <div id="result" style="margin-top:20px; padding:15px; background:#222; border-radius:10px; white-space:pre-wrap; font-family:monospace; display:none;"></div>
+  <div id="result" style="display:none; margin-top:20px; padding:15px; background:#222; white-space:pre-wrap; border-radius:10px;"></div>
 </main>
 
 <aside>
@@ -166,178 +152,189 @@
   <div id="log"></div>
 </aside>
 
+
 <script>
-/* ----------------- DATA -------------------- */
-const colors = ['#ff9800','#b39ddb','#66bb6a','#9e9e9e'];
-let running = false;
-let lastSwitch = null;
+/* ========== VARIABELEN ========== */
+const labels = [
+  "Organisatie & beheer",
+  "Instructie & uitleg",
+  "Actieve leertijd",
+  "Overig / pauze"
+];
+
+const colors =   ['#ff9800','#b39ddb','#66bb6a','#9e9e9e'];
+const darkCols = ['#e65100','#7e57c2','#43a047','#616161'];
+
 let startTime = null;
-let totalElapsed = 0;
+let lastUpdate = null;
 let accum = [0,0,0,0];
 let active = 0;
+let running = false;
+let totalElapsed = 0;
 
-/* Voor timeline */
-let segments = [];
-let segmentStart = null;
+let noteTypingStartedAt = null;
 
-/* Voor notities */
-let noteTypingStart = null;
 
-/* ----------------- HELPERS -------------------- */
+/* ========== FORMAT FUNCTIE ========== */
 function fmt(ms){
   const s = Math.floor(ms/1000);
   const m = Math.floor(s/60);
   const sec = (s%60).toString().padStart(2,'0');
-  return m>=60 ? `${Math.floor(m/60)}:${(m%60).toString().padStart(2,'0')}:${sec}` : `${m}:${sec}`;
+  return m>=60 ? `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${sec}` : `${m}:${sec}`;
 }
 
-function lessonTimeFrom(ms){ return fmt(ms); }
+/* ========== LOG FUNCTIE ========== */
+function addLog(msg, type="note", cat=null, t=null){
+  const div = document.createElement("div");
+  div.className = "logentry";
 
-function addLog(txt, type='note', cat=null){
-  const div = document.createElement('div');
-  div.classList.add('logentry');
-  if(type==='cat') div.classList.add('log-cat'+cat);
-  if(type==='note') div.classList.add('note');
+  if(type==="cat") div.classList.add("log-cat"+cat);
+  if(type==="note") div.classList.add("note");
 
-  const stamp = type==='start'
-    ? new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
-    : lessonTimeFrom(totalElapsed);
+  const stamp = (t!==null)
+       ? fmt(t)
+       : type==="start"
+         ? new Date().toLocaleTimeString("nl-BE",{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+         : fmt(totalElapsed);
 
-  div.textContent = `[${stamp}] ${txt}`;
-  document.querySelector('#log').appendChild(div);
-  div.scrollIntoView({behavior:'smooth'});
+  div.textContent = `[${stamp}] ${msg}`;
+  log.appendChild(div);
+  div.scrollIntoView({behavior:"smooth"});
 }
 
-/* ----------------- TIMELINE -------------------- */
+/* ========== TIMELINE ========== */
 function rebuildTimeline(){
-  const tl = document.querySelector('#timeline');
-  tl.innerHTML = '';
-  const total = segments.reduce((a,s)=>a+s.duration,0) || 1;
-
-  segments.forEach(seg=>{
-    const div=document.createElement('div');
-    div.className='seg';
-    div.style.background=colors[seg.cat];
-    div.style.width=(seg.duration/total*100)+'%';
-    tl.appendChild(div);
+  timeline.innerHTML = "";
+  let sum = accum.reduce((a,b)=>a+b,0);
+  if(sum === 0) return;
+  
+  accum.forEach((ms,i)=>{
+    if(ms<=0) return;
+    const seg = document.createElement("div");
+    seg.className="seg";
+    seg.style.background = colors[i];
+    seg.style.width = (ms/sum*100)+"%";
+    timeline.appendChild(seg);
   });
 }
 
-/* ----------------- UPDATE -------------------- */
+/* ========== UPDATE LOOP ========== */
 function update(){
   if(!running) return;
 
-  const now=Date.now();
-  const elapsed=now-lastSwitch;
-  lastSwitch=now;
+  const now = Date.now();
+  const elapsed = now - lastUpdate;
+  lastUpdate = now;
 
-  accum[active]+=elapsed;
-  totalElapsed+=elapsed;
+  accum[active] += elapsed;
+  totalElapsed += elapsed;
 
-  document.querySelector('#total').textContent = lessonTimeFrom(totalElapsed);
+  total.textContent = fmt(totalElapsed);
 
-  accum.forEach((t,i)=>{
-    document.querySelector('#t'+i).textContent = fmt(t);
-    const perc = totalElapsed ? (t/totalElapsed*100).toFixed(1) : 0;
-    document.querySelector('#perc'+i).textContent = perc+"%";
-    document.querySelectorAll('.fill')[i].style.width = perc+"%";
+  accum.forEach((ms,i)=>{
+    document.querySelector("#t"+i).textContent = fmt(ms);
+    const p = totalElapsed ? (ms/totalElapsed*100).toFixed(1) : 0;
+    document.querySelector("#p"+i).textContent = p+"%";
+    document.querySelectorAll(".fill")[i].style.width = p+"%";
   });
+
+  rebuildTimeline();
 }
 
-setInterval(update,200);
-
-/* ----------------- CATEGORY SWITCH -------------------- */
-document.querySelectorAll('.cat').forEach(cat=>{
-  cat.addEventListener('click',()=>{
+/* ========== CATEGORIE-WISSEL ========== */
+document.querySelectorAll(".cat").forEach(cat=>{
+  cat.addEventListener("click",()=>{
     if(!running) return;
 
-    /* sluit vorige segment af */
-    const segDur = Date.now()-segmentStart;
-    segments.push({cat:active, duration:segDur});
-    rebuildTimeline();
+    document.querySelectorAll(".cat")[active].classList.remove("active");
+    document.querySelectorAll(".cat")[active].style.background="#333";
 
-    /* switch */
-    document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
-    active = +cat.dataset.id;
-    cat.classList.add('active');
-    segmentStart = Date.now();
+    active = Number(cat.dataset.id);
 
-    addLog(`→ ${cat.querySelector('.label').textContent}`, 'cat', active);
+    cat.classList.add("active");
+    cat.style.background = colors[active];
+
+    addLog(`→ ${labels[active]}`,"cat",active);
+
+    lastUpdate = Date.now();
   });
 });
 
-/* ----------------- START -------------------- */
-document.querySelector('#startBtn').onclick=()=>{
-  running=true;
-  startTime=lastSwitch=Date.now();
-  segmentStart=Date.now();
-  segments=[];
+/* ========== START ========== */
+startBtn.onclick = ()=>{
+  running = true;
+  startTime = lastUpdate = Date.now();
+  totalElapsed = 0;
+  timeline.innerHTML = "";
 
-  document.querySelector('#timeline').innerHTML="";
-  document.querySelector('#startBtn').classList.add('hidden');
-  document.querySelectorAll('#pauseBtn, #stopBtn, #resetBtn, #noteInput, #noteBtn')
-    .forEach(el=>el.classList.remove('hidden'));
+  startBtn.classList.add("hidden");
+  [pauseBtn,stopBtn,resetBtn,noteInput,noteBtn].forEach(el=>el.classList.remove("hidden"));
 
-  addLog('Observatie gestart','start');
+  document.querySelectorAll(".cat").forEach((c,i)=>{
+    c.style.background = i===0 ? colors[0] : "#333";
+  });
+
+  addLog("Observatie gestart","start");
 };
 
-/* ----------------- PAUSE -------------------- */
-document.querySelector('#pauseBtn').onclick=()=>{
-  running=!running;
-  document.querySelector('#pauseBtn').textContent = running ? 'Pauze' : '▶ Hervatten';
-  if(running) lastSwitch=Date.now();
-  addLog(running?'Hervat':'Gepauzeerd');
+/* ========== PAUZE ========== */
+pauseBtn.onclick = ()=>{
+  running = !running;
+  pauseBtn.textContent = running ? "Pauze" : "▶ Hervatten";
+  if(running) lastUpdate = Date.now();
+  addLog(running ? "Hervat":"Gepauzeerd");
 };
 
-/* ----------------- NOTES -------------------- */
-const noteInput=document.querySelector('#noteInput');
-
-noteInput.addEventListener('input',()=>{
-  if(noteInput.value.length>0 && noteTypingStart===null){
-    noteTypingStart = totalElapsed;
+/* ========== NOTITIE (timestamp = bij eerste typmoment) ========== */
+noteInput.addEventListener("input",()=>{
+  if(noteInput.value.length>0 && noteTypingStartedAt===null && running){
+    noteTypingStartedAt = Date.now();
   }
 });
 
-document.querySelector('#noteBtn').onclick=()=>{
-  const txt=noteInput.value.trim();
+noteBtn.onclick = ()=>{
+  const txt = noteInput.value.trim();
   if(!txt) return;
-  const t = noteTypingStart!==null ? noteTypingStart : totalElapsed;
-  totalElapsed = t; // temporary override? No → we print the manual timestamp
-  addLog(txt);
-  noteTypingStart=null;
+
+  let t = noteTypingStartedAt
+        ? noteTypingStartedAt - startTime
+        : totalElapsed;
+
+  addLog(txt,"note",null,t);
+
+  noteTypingStartedAt = null;
   noteInput.value="";
 };
 
-/* ----------------- STOP -------------------- */
-document.querySelector('#stopBtn').onclick=()=>{
-  if(running){ update(); running=false; }
+/* ========== STOP ========== */
+stopBtn.onclick = ()=>{
+  if(running){
+    update();
+    running=false;
+  }
+  addLog("Observatie beëindigd");
 
-  /* sluit laatste segment af */
-  const segDur = Date.now()-segmentStart;
-  segments.push({cat:active, duration:segDur});
-  rebuildTimeline();
+  let res = `Observatie beëindigd – ${new Date().toLocaleString("nl-BE")}\n\n`;
+  res += `Totale lestijd: ${fmt(totalElapsed)}\n\n`;
 
-  addLog('Observatie beëindigd');
-
-  let out=`Observatie beëindigd – ${new Date().toLocaleString('nl-BE')}\n\n`;
-  out+=`Totale lestijd: ${fmt(totalElapsed)}\n\n`;
-
-  const labels=["Organisatie & beheer","Instructie & uitleg","Actieve leertijd","Overig / pauze"];
   labels.forEach((l,i)=>{
-    out+=`${l}: ${fmt(accum[i])} (${(accum[i]/totalElapsed*100).toFixed(1)}%)\n`;
+    let p = totalElapsed ? (accum[i]/totalElapsed*100).toFixed(1) : 0;
+    res += `${l}: ${fmt(accum[i])} (${p}%)\n`;
   });
 
-  out+="\nVolledig logboek:\n";
-  document.querySelectorAll('#log .logentry').forEach(e=>out+=e.textContent+"\n");
+  res += "\nVolledig logboek:\n";
+  document.querySelectorAll("#log .logentry").forEach(e=>res += e.textContent+"\n");
 
-  document.querySelector('#result').textContent=out;
-  document.querySelector('#result').style.display='block';
+  result.textContent = res;
+  result.style.display="block";
 };
 
-/* ----------------- RESET -------------------- */
-document.querySelector('#resetBtn').onclick=()=>{
-  if(confirm("Alles wissen en opnieuw beginnen?")) location.reload();
-};
+/* ========== RESET ========== */
+resetBtn.onclick = ()=>{ if(confirm("Alles wissen en opnieuw beginnen?")) location.reload(); };
+
+/* ========== UPDATE INTERVAL ========== */
+setInterval(update,200);
 </script>
+
 </body>
 </html>
