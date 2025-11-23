@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <title>Test Observatie Tool</title>
+  <style>
+    body { font-family: Arial; background: #1e1e1e; color: #ddd; padding: 20px; }
+    .cat { background: #333; padding: 15px; margin: 10px 0; border-radius: 8px; cursor: pointer; }
+    .cat.active { background: #ff9800; color: white; }
+    .cat::before { content: attr(data-key); font-size: 1.5em; opacity: 0.7; }
+    .log { background: #111; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    .note-positive { color: #66bb6a; font-weight: bold; }
+    .note-negative { color: #ef5350; font-weight: bold; }
+    .time { color: #888; margin-right: 8px; }
+    button { padding: 10px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; }
+    .green-btn { background: #4caf50; color: white; }
+    .red-btn { background: #f44336; color: white; }
+  </style>
+</head>
+<body>
+  <h1>Test Observatie Tool</h1>
+  
+  <div class="cat active" data-id="0" data-key="①" onclick="switchCategory(0)">Organisatie & beheer</div>
+  <div class="cat" data-id="1" data-key="②" onclick="switchCategory(1)">Instructie & uitleg</div>
+  <div class="cat" data-id="2" data-key="③" onclick="switchCategory(2)">Actieve leertijd</div>
+  <div class="cat" data-id="3" data-key="④" onclick="switchCategory(3)">Overig / pauze</div>
+  
+  <br>
+  <button class="green-btn" onclick="setPositive()">+ Groen (Checkmark)</button>
+  <button class="red-btn" onclick="setNegative()">- Rood (✗)</button>
+  <button onclick="cancelColor()">Annuleren</button>
+  
+  <br><br>
+  <input type="text" id="noteInput" placeholder="Typ notitie..." style="width: 300px; padding: 8px;">
+  <button onclick="addNote()">Voeg toe</button>
+  
+  <br><br>
+  <div class="log" id="log">
+    <div style="text-align: center; color: #4caf50; font-weight: bold; margin-bottom: 20px;">TEST LOGBOEK</div>
+  </div>
+
+  <script>
+    let activeCategory = 0;
+    let isPositive = false;
+    let isNegative = false;
+    let totalTime = 0;
+
+    function switchCategory(id) {
+      document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-id="${id}"]`).classList.add('active');
+      activeCategory = id;
+      
+      const now = Date.now();
+      const duration = now - (window.lastTime || now);
+      totalTime += duration;
+      
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.style.background = id === 0 ? '#ff980044' : id === 1 ? '#ba68c844' : id === 2 ? '#66bb6a44' : '#9e9e9e44';
+      entry.innerHTML = `<span class="time">[${Math.floor(totalTime/1000)}]</span> → Categorie ${id + 1} (${Math.floor(duration/1000)}s)`;
+      log.appendChild(entry);
+      entry.scrollIntoView();
+      
+      window.lastTime = now;
+    }
+
+    function setPositive() {
+      isPositive = !isPositive;
+      isNegative = false;
+      const input = document.getElementById('noteInput');
+      input.style.background = isPositive ? '#66bb6a20' : '#222';
+      input.style.border = isPositive ? '1px solid #66bb6a' : '1px solid #444';
+      input.placeholder = isPositive ? 'Groen actief (Checkmark) - druk nogmaals + om te annuleren' : 'Typ notitie...';
+    }
+
+    function setNegative() {
+      isNegative = !isNegative;
+      isPositive = false;
+      const input = document.getElementById('noteInput');
+      input.style.background = isNegative ? '#ef535020' : '#222';
+      input.style.border = isNegative ? '1px solid #ef5350' : '1px solid #444';
+      input.placeholder = isNegative ? 'Rood actief (✗) - druk nogmaals - om te annuleren' : 'Typ notitie...';
+    }
+
+    function cancelColor() {
+      isPositive = isNegative = false;
+      const input = document.getElementById('noteInput');
+      input.style.background = '#222';
+      input.style.border = '1px solid #444';
+      input.placeholder = 'Typ notitie...';
+    }
+
+    function addNote() {
+      const text = document.getElementById('noteInput').value.trim();
+      if (!text) return;
+
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'note';
+      entry.style.paddingLeft = '40px';
+      entry.style.margin = '8px 0';
+      entry.style.position = 'relative';
+
+      let prefix = '→ ';
+      if (isPositive) {
+        prefix = 'Checkmark  ';
+        entry.style.color = '#66bb6a';
+        entry.style.fontWeight = 'bold';
+      } else if (isNegative) {
+        prefix = '✗  ';
+        entry.style.color = '#ef5350';
+        entry.style.fontWeight = 'bold';
+      }
+
+      entry.innerHTML = `<span class="time">[${Math.floor(totalTime/1000)}]</span> ${prefix}${text}`;
+      log.appendChild(entry);
+      entry.scrollIntoView();
+
+      document.getElementById('noteInput').value = '';
+      cancelColor();
+    }
+
+    // Test direct starten met Organisatie
+    window.onload = () => switchCategory(0);
+  </script>
+</body>
+</html>
