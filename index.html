@@ -9,22 +9,24 @@
 <body>
 
 <!-- INTRO SCHERM -->
-<div id="intro" class="screen">
-  <h1>Sportles Observatie</h1>
-  <div class="intro-form">
-    <div class="field">
-      <label>Lesonderwerp</label>
-      <input type="text" id="subject" placeholder="Bv. Handbal – passing en vangen">
+<div id="intro">
+  <div class="intro-inner">
+    <h1>Sportles Observatie</h1>
+    <div class="intro-form">
+      <div class="field">
+        <label>Lesonderwerp</label>
+        <input type="text" id="subject" placeholder="Bv. Handbal – passing en vangen">
+      </div>
+      <div class="field">
+        <label>Lesgever</label>
+        <input type="text" id="teacher" placeholder="Bv. Juf Annelies">
+      </div>
+      <div class="field">
+        <label>Doelgroep</label>
+        <input type="text" id="group" placeholder="Bv. 5de leerjaar – 22 leerlingen">
+      </div>
+      <button id="startObservationBtn">Start observatie</button>
     </div>
-    <div class="field">
-      <label>Lesgever</label>
-      <input type="text" id="teacher" placeholder="Bv. Juf Annelies">
-    </div>
-    <div class="field">
-      <label>Doelgroep</label>
-      <input type="text" id="group" placeholder="Bv. 5de leerjaar – 22 leerlingen">
-    </div>
-    <button id="startObservationBtn" class="big-btn">Start observatie</button>
   </div>
 </div>
 
@@ -54,7 +56,11 @@
   </aside>
 </div>
 
+<script type="module">
+  import { categories } from './js/config.js';
+  import { initApp } from './js/main.js';
+  initApp(categories);
+</script>
+
 </body>
 </html>
-
-
