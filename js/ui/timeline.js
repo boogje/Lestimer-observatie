@@ -1,71 +1,39 @@
-/* ============================================================
-   TIMELINE UI — segment rendering + lesdeel-labels boven balk
-   ============================================================ */
+/*-+  (melding genegeerd) */
 
-import { State, fmt } from "../core/state.js";
+import { state } from "../core/state.js";
 
+export function setupTimelineRendering() {
+  // Init: niets te doen, rendering gebeurt live in updateTick
+}
 
-/* ─────────────────────────────────────────────────────────────
-   SELECTORS
-   ───────────────────────────────────────────────────────────── */
-const timeline = document.getElementById("timeline");
-const timelineLabels = document.getElementById("timelineLabels");
+export function addTimelineSegment(catIndex, durationMs) {
+  if (durationMs < 200) return; // Te kort → negeren (vermijdt ruis)
 
+  state.timelineSegments.push({
+    cat: catIndex,
+    duration: durationMs
+  });
 
-/* ============================================================
-   UPDATE TIMELINE SEGMENTEN (horizontale balk)
-   ============================================================ */
+  renderTimeline();
+}
+
 export function renderTimeline() {
-    timeline.innerHTML = "";
+  const bar = document.getElementById("timeline");
+  if (!bar) return;
 
-    const total = State.totalElapsed > 0 ? State.totalElapsed : 1;
+  bar.innerHTML = "";
 
-    State.timelineSegments.forEach(seg => {
-        const segStart = seg.start;
-        const segEnd = seg.end !== null ? seg.end : State.totalElapsed;
-        const width = ((segEnd - segStart) / total) * 100;
+  const total = state.timelineSegments.reduce((a, s) => a + s.duration, 0) || 1;
 
-        const block = document.createElement("div");
-        block.className = "seg";
-        block.style.width = width + "%";
-        block.style.background = State.colors[seg.cat];
-
-        timeline.appendChild(block);
-    });
+  state.timelineSegments.forEach(seg => {
+    const div = document.createElement("div");
+    div.className = "seg";
+    div.style.background = getColor(seg.cat);
+    div.style.width = (seg.duration / total * 100) + "%";
+    bar.appendChild(div);
+  });
 }
 
-
-/* ============================================================
-   UPDATE LESDEEL LABELS (boven timeline, exact breedte)
-   ============================================================ */
-export function renderLessonPartLabels() {
-    timelineLabels.innerHTML = "";
-
-    const total = State.totalElapsed > 0 ? State.totalElapsed : 1;
-
-    State.lessonParts.forEach(part => {
-        const start = part.start;
-        const end = part.end !== null ? part.end : State.totalElapsed;
-
-        const width = ((end - start) / total) * 100;
-
-        const lbl = document.createElement("div");
-        lbl.className = "timelineLabel";
-        lbl.style.width = width + "%";
-
-        lbl.textContent = part.label
-            ? part.label.toUpperCase()
-            : "LESDEEL";
-
-        timelineLabels.appendChild(lbl);
-    });
-}
-
-
-/* ============================================================
-   VOLLEDIG TIMELINE UPDATE PAKKET
-   ============================================================ */
-export function updateTimelineUI() {
-    renderTimeline();
-    renderLessonPartLabels();
+function getColor(i) {
+  return ["#ff9800", "#b39ddb", "#66bb6a", "#9e9e9e"][i];
 }

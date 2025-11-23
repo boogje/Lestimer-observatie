@@ -1,91 +1,44 @@
-/* ============================================================
-   LOGGER — hiërarchische logstructuur (L1 / L2 / L3)
-   ============================================================ */
+/*-+  (melding genegeerd) */
 
-import { State, fmt } from "../core/state.js";
+import { state } from "../core/state.js";
 
-/* ─────────────────────────────────────────────────────────────
-   SELECTOR
-   ───────────────────────────────────────────────────────────── */
-const logBox = document.getElementById("log");
-
-
-/* ============================================================
-   BASIS: TIMESTAMP BUILDER
-   ============================================================ */
-
-function timestamp(overrideMs = null) {
-    const t = overrideMs !== null ? overrideMs : State.totalElapsed;
-    return `[${fmt(t)}]`;
+export function setupLogSystem() {
+  // Init: logger wordt puur event-driven gebruikt
 }
 
+export function addLogEntry(text, type = "note", category = null) {
+  const container = document.getElementById("log");
+  if (!container) return;
 
-/* ============================================================
-   LOG L1 — LESDELEN (HOOFDNIVEAU – CAPS)
-   ============================================================ */
-export function logNewLessonPart() {
-    // Sluit vorige lesdeel af
-    if (State.currentPart) {
-        State.currentPart.end = State.totalElapsed;
-    }
+  const entry = document.createElement("div");
+  entry.classList.add("logentry");
 
-    // Maak nieuw lesdeel
-    State.currentPart = {
-        start: State.totalElapsed,
-        end: null,
-        label: ""
-    };
-    State.lessonParts.push(State.currentPart);
+  if (type === "cat" && category !== null) entry.classList.add("log-cat" + category);
+  if (type === "note") entry.classList.add("note");
 
-    // SCHRIJF NAAR LOG
-    const div = document.createElement("div");
-    div.className = "logL1";
-    div.textContent = `${timestamp()} NIEUW LESDEEL`;
-    logBox.appendChild(div);
-    div.scrollIntoView({ behavior: "smooth" });
+  const stamp = type === "start"
+    ? new Date().toLocaleTimeString("nl-BE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : formatElapsed(state.totalElapsed);
+
+  entry.textContent = `[${stamp}] ${text}`;
+  container.appendChild(entry);
+
+  entry.scrollIntoView({ behavior: "smooth" });
+
+  state.logEntries.push({
+    timestamp: stamp,
+    text,
+    type,
+    category
+  });
 }
 
+function formatElapsed(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = String(s % 60).padStart(2, "0");
 
-/* ============================================================
-   LOG L2 — CATEGORIE-WISSEL
-   ============================================================ */
-export function logCategorySwitch(newCat, durationMs) {
-    const name = State.categories[newCat];
-    const dur = fmt(durationMs);
-
-    const div = document.createElement("div");
-    div.className = "logL2";
-    div.textContent = `${timestamp()} → ${name} (${dur})`;
-    logBox.appendChild(div);
-    div.scrollIntoView({ behavior: "smooth" });
-}
-
-
-/* ============================================================
-   LOG L3 — NOTITIES
-   ============================================================ */
-export function logNote(text, msStamp) {
-    const div = document.createElement("div");
-    div.className = "logL3";
-    div.textContent = `${timestamp(msStamp)} → ${text}`;
-    logBox.appendChild(div);
-    div.scrollIntoView({ behavior: "smooth" });
-}
-
-
-/* ============================================================
-   LOG — START EN STOP
-   ============================================================ */
-export function logStart() {
-    const div = document.createElement("div");
-    div.className = "logL1";
-    div.textContent = `${timestamp(0)} OBSERVATIE GESTART`;
-    logBox.appendChild(div);
-}
-
-export function logStop() {
-    const div = document.createElement("div");
-    div.className = "logL1";
-    div.textContent = `${timestamp()} OBSERVATIE BEËINDIGD`;
-    logBox.appendChild(div);
+  return m >= 60
+    ? `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${sec}`
+    : `${m}:${sec}`;
 }

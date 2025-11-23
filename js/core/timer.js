@@ -1,132 +1,70 @@
-/* ============================================================
-   TIMER ENGINE — tijdregistratie & categorie-wissels
-   ============================================================ */
+import { state } from "./state.js";
+import { addLogEntry } from "../ui/logger.js";
+import { renderTimeline } from "../ui/timeline.js";
 
-import { State, fmt } from "./state.js";
+export function setupTimerControls() {
+  document.getElementById("startBtn")?.addEventListener("click", startObservation);
+  document.getElementById("pauseBtn")?.addEventListener("click", togglePause);
+  document.getElementById("stopBtn")?.addEventListener("click", stopObservation);
 
-/* ============================================================
-   START TIMER
-   ============================================================ */
-export function startTimer() {
-    State.running = true;
-    State.startTime = Date.now();
-    State.lastSwitch = Date.now();
-    State.totalElapsed = 0;
-
-    // Eerste segment starten
-    State.timelineSegments.push({
-        start: 0,
-        end: null,
-        cat: State.activeCat
-    });
-
-    // Eerste lesdeel starten
-    State.currentPart = {
-        start: 0,
-        end: null,
-        label: ""   // wordt later benoemd
-    };
-    State.lessonParts.push(State.currentPart);
+  setInterval(updateTimerTick, 200);
 }
 
+function startObservation() {
+  state.running = true;
+  state.startTime = Date.now();
+  state.lastSwitch = Date.now();
 
-/* ============================================================
-   PAUZEER / HERVAT
-   ============================================================ */
-export function togglePause() {
-    if (State.running) {
-        State.running = false;
-    } else {
-        State.running = true;
-        State.lastSwitch = Date.now();
-    }
+  document.getElementById("startBtn")?.classList.add("hidden");
+  document.getElementById("pauseBtn")?.classList.remove("hidden");
+  document.getElementById("stopBtn")?.classList.remove("hidden");
+
+  addLogEntry("OBSERVATIE GESTART", "start");
 }
 
-
-/* ============================================================
-   TICK — wordt meerdere keren per seconde aangeroepen
-   ============================================================ */
-export function tick() {
-    if (!State.running) return;
-
-    const now = Date.now();
-    const elapsed = now - State.lastSwitch;
-
-    // Update huidige categorie en totalen
-    State.accum[State.activeCat] += elapsed;
-    State.totalElapsed += elapsed;
-
-    State.lastSwitch = now;
+function togglePause() {
+  state.running = !state.running;
+  const btn = document.getElementById("pauseBtn");
+  btn.textContent = state.running ? "Pauze" : "Hervatten";
+  if (state.running) state.lastSwitch = Date.now();
+  addLogEntry(state.running ? "HERVAT" : "GEPAUZEERD", "note");
 }
 
+function updateTimerTick() {
+  if (!state.running) return;
+  const now = Date.now();
+  const elapsed = now - state.lastSwitch;
 
-/* ============================================================
-   WISSEL VAN CATEGORIE
-   ============================================================ */
-export function switchCategory(newCat) {
-    if (!State.running) return;
+  state.accum[state.activeCategory] += elapsed;
+  state.totalElapsed += elapsed;
+  state.lastSwitch = now;
 
-    const now = Date.now();
-    const elapsed = now - State.lastSwitch;
-
-    // Vorige categorie afronden
-    State.accum[State.activeCat] += elapsed;
-    State.totalElapsed += elapsed;
-
-    const lastSeg = State.timelineSegments[State.timelineSegments.length - 1];
-    lastSeg.end = State.totalElapsed;
-
-    // Nieuwe segment starten
-    State.timelineSegments.push({
-        start: State.totalElapsed,
-        end: null,
-        cat: newCat
-    });
-
-    // Switch
-    State.activeCat = newCat;
-    State.lastSwitch = now;
-
-    return elapsed; // nodig voor log: duur vorige segment
+  updateTimeDisplays();
+  renderTimeline();
 }
 
+export function updateTimeDisplays() {
+  document.getElementById("total").textContent = formatTime(state.totalElapsed);
 
-/* ============================================================
-   STOP TIMER
-   ============================================================ */
-export function stopTimer() {
-    if (!State.running) return;
-
-    tick();
-    State.running = false;
-
-    // Eindsegment afsluiten
-    const lastSeg = State.timelineSegments[State.timelineSegments.length - 1];
-    lastSeg.end = State.totalElapsed;
-
-    // Laatste lesdeel afronden
-    if (State.currentPart) {
-        State.currentPart.end = State.totalElapsed;
-    }
+  state.accum.forEach((ms, i) => {
+    document.getElementById("t" + i).textContent = formatTime(ms);
+    const perc = state.totalElapsed ? ((ms / state.totalElapsed) * 100).toFixed(1) : 0;
+    document.getElementById("p" + i).textContent = perc + "%";
+    document.querySelectorAll(".fill")[i].style.width = perc + "%";
+  });
 }
 
+export function stopObservation() {
+  if (state.running) updateTimerTick();
+  state.running = false;
+  addLogEntry("OBSERVATIE BEËINDIGD", "note");
 
-/* ============================================================
-   RESET ALLES
-   ============================================================ */
-export function resetTimer() {
-    State.running = false;
-    State.startTime = null;
-    State.lastSwitch = null;
-    State.totalElapsed = 0;
+  document.getElementById("exportSection")?.classList.remove("hidden");
+}
 
-    State.accum = [0,0,0,0];
-    State.activeCat = 0;
-
-    State.timelineSegments = [];
-    State.lessonParts = [];
-    State.currentPart = null;
-
-    State.noteStartTime = null;
-    State.typingStarted = false;
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const sec = (s % 60).toString().padStart(2, "0");
+  return m >= 60 ? `${Math.floor(m/60)}:${(m%60).toString().padStart(2,'0')}:${sec}` : `${m}:${sec}`;
 }

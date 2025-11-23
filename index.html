@@ -1,52 +1,50 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<title>Sportles Observatie Timer v10 – Modulair</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <title>Sportles Observatie Timer v10</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- STYLESHEET -->
-<link rel="stylesheet" href="css/style.css">
-
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
 <!-- ─────────────────────────────────────────────
-     STARTPANEEL
+     STARTPANEEL: LESGEGEVENS
      ───────────────────────────────────────────── -->
 <div id="configPanel">
   <h2>Lesgegevens invullen</h2>
 
-  <label>Titel van de les:</label>
+  <label for="cfgTitle">Titel van de les:</label>
   <input id="cfgTitle" type="text" placeholder="bv. Balvaardigheid – tikspelen">
 
-  <label>Lesgever(s):</label>
+  <label for="cfgTeacher">Lesgever(s):</label>
   <input id="cfgTeacher" type="text" placeholder="bv. Juf Sarah, Meester Tom">
 
-  <label>Locatie / Klasgroep:</label>
+  <label for="cfgLocation">Locatie / Klasgroep:</label>
   <input id="cfgLocation" type="text" placeholder="bv. 6SPORT – Sporthal Rembert">
 
   <button id="configStartBtn">Observatie starten</button>
 </div>
 
 
-
 <!-- ─────────────────────────────────────────────
-     MAIN
+     MAIN (timer en categorieën)
      ───────────────────────────────────────────── -->
-<main>
+<main id="main" style="display:none;">
 
   <h1 id="lessonHeader"></h1>
 
   <div id="total">00:00</div>
 
-  <!-- TIMELINE -->
   <div id="timelineWrapper">
     <div id="timelineLabels"></div>
     <div id="timeline"></div>
   </div>
 
-  <!-- CATEGORIEKNOPPEN -->
+  <!-- CATEGORIEBLOKKEN -->
   <div class="cat active" data-id="0">
     <div class="fill" style="background:#e65100"></div>
     <div class="perc" id="p0">0%</div>
@@ -75,7 +73,7 @@
     <div class="fill" style="background:#616161"></div>
     <div class="perc" id="p3">0%</div>
     <div class="label">Overig / pauze</div>
-    <div class="desc">drinken, blessure, ongeplande onderbreking…</div>
+    <div class="desc">onderbreking, drinken, blessure…</div>
     <div class="time" id="t3">0:00</div>
   </div>
 
@@ -92,31 +90,27 @@
   <button id="noteBtn" class="hidden">Notitie toevoegen</button>
 
   <!-- EXPORT -->
-  <div id="exportSection">
-    <div style="display:flex; gap:12px;">
-      <button id="copyBtn">📋 Kopieer logboek</button>
-      <button id="downloadBtn">⬇️ Download TXT</button>
-    </div>
+  <div id="exportSection" class="hidden">
+    <button id="copyBtn">📋 Kopieer logboek</button>
+    <button id="downloadBtn">⬇️ Download TXT</button>
   </div>
-
 </main>
 
 
-
-<!-- ─────────────────────────────────────────────
-     LOG
-     ───────────────────────────────────────────── -->
+<!-- LOGBOEK -->
 <aside>
   <h3>Logboek</h3>
   <div id="log"></div>
 </aside>
 
 
-
 <!-- ─────────────────────────────────────────────
-     JAVASCRIPT MODULES
+     MODULE ENTRYPOINT
      ───────────────────────────────────────────── -->
-<script type="module" src="js/app.js"></script>
+<script type="module">
+  import { appInit } from "./js/app.js";
+  appInit();
+</script>
 
 </body>
 </html>
