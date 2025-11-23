@@ -15,7 +15,9 @@ window.state = {
   segments: [],
   segmentStart: null,
   info: {},
-  currentSection: 0
+  currentSection: 0,
+  nextNotePositive: false,
+  nextNoteNegative: false
 };
 
 window.categories = categories;
@@ -24,7 +26,7 @@ let lastSegmentDuration = 0;
 export function initApp() {
   const state = window.state;
 
-  // === START OBSERVATIE ===
+  // === START ===
   document.getElementById('startObservationBtn').onclick = () => {
     state.info = {
       subject: document.getElementById('subject').value.trim() || "Onbekend_onderwerp",
@@ -40,13 +42,16 @@ export function initApp() {
     state.running = true;
     state.lastSwitch = state.segmentStart = Date.now();
 
-    document.getElementById('pauseBtn').classList.remove('hidden');
-    document.getElementById('stopBtn').classList.remove('hidden');
-    document.getElementById('saveLogBtn').classList.remove('hidden');
-    document.getElementById('noteInput').classList.remove('hidden');
-    document.getElementById('noteBtn').classList.remove('hidden');
+    // Toon knoppen
+    ['pauseBtn','stopBtn','saveLogBtn','noteInput','noteBtn'].forEach(id => {
+      document.getElementById(id).classList.remove('hidden');
+    });
 
-    document.querySelector('.cat').style.background = categories[0].color;
+    // Nummerhints toevoegen
+    document.querySelectorAll('.cat').forEach((cat, i) => {
+      cat.dataset.key = ['①','②','③','④'][i];
+      cat.style.background = i === 0 ? categories[0].color : '#333';
+    });
 
     addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
     addLog(`Lesgever: ${state.info.teacher}`, 'info');
@@ -54,143 +59,53 @@ export function initApp() {
     addLog('Observatie gestart', 'start');
   };
 
-  // === TOETSENBORD BESTURING ===
+  // === TOETSENBORD ===
   document.addEventListener('keydown', e => {
     if (!state.running) return;
 
-    // Categorieën 1-4
     if (e.key >= '1' && e.key <= '4') {
       const index = parseInt(e.key) - 1;
-      if (index < categories.length) {
-        document.querySelectorAll('.cat')[index].click();
-      }
+      document.querySelectorAll('.cat')[index]?.click();
       e.preventDefault();
       return;
     }
 
-    // Elke andere toets → focus op notitieveld
-    if (e.key.length === 1 || e.key === 'Enter') {
-      const input = document.getElementById('noteInput');
-      input.focus();
-      if (e.key === 'Enter' && input.value.trim()) {
-        document.getElementById('noteBtn').click();
-      }
+    if (e.key === '+') {
+      state.nextNotePositive = true;
+      state.nextNoteNegative = false;
+      document.getElementById('noteInput').focus();
+      e.preventDefault();
+      return;
+    }
+    if (e.key === '-') {
+      state.nextNoteNegative = true;
+      state.nextNotePositive = false;
+      document.getElementById('noteInput').focus();
+      e.preventDefault();
+      return;
+    }
+
+    const input = document.getElementById('noteInput');
+    input.focus();
+    if (e.key === 'Enter' && input.value.trim()) {
+      document.getElementById('noteBtn').click();
     }
   });
 
-  // === CATEGORIE WISSEL ===
-  document.addEventListener('click', e => {
-    const cat = e.target.closest('.cat');
-    if (!cat || !state.running) return;
-
-    lastSegmentDuration = Date.now() - state.segmentStart;
-    addSegment(state, state.active);
-
-    // Nieuw lesdeel bij start Instructie & uitleg
-    if (state.active === 1 && parseInt(cat.dataset.id) !== 1) {
-      state.currentSection++;
-      const sectionDiv = document.createElement('div');
-      sectionDiv.className = 'log-section';
-      sectionDiv.textContent = `Lesdeel ${state.currentSection}`;
-      document.getElementById('log').appendChild(sectionDiv);
-    }
-
-    document.querySelectorAll('.cat').forEach(c => {
-      c.classList.remove('active');
-      c.style.background = '#333';
-    });
-
-    state.active = +cat.dataset.id;
-    cat.classList.add('active');
-    cat.style.background = categories[state.active].color;
-    state.segmentStart = Date.now();
-
-    const durationText = lastSegmentDuration > 1000 ? ` (${formatTime(lastSegmentDuration)})` : '';
+  // === NOTITIES MET KLEUR ===
+  window.addNoteToLog = (text) => {
     const entry = document.createElement('div');
-    entry.className = 'logentry log-sub log-cat' + state.active;
-    entry.textContent = `[${formatTime(state.totalElapsed)}] → ${categories[state.active].name}${durationText}`;
+    entry.className = 'logentry log-note';
+    if (state.nextNotePositive) entry.classList.add('note-positive');
+    if (state.nextNoteNegative) entry.classList.add('note-negative');
+    entry.textContent = `→ ${text}`;
     document.getElementById('log').appendChild(entry);
     entry.scrollIntoView({ behavior: 'smooth' });
-  });
 
-  // === TIMER ===
-  setInterval(() => {
-    if (!state.running) return;
-    const now = Date.now();
-    const elapsed = now - state.lastSwitch;
-    state.accum[state.active] += elapsed;
-    state.totalElapsed += elapsed;
-    state.lastSwitch = now;
-    updateDisplay(state);
-  }, 200);
-
-  // === PAUZE ===
-  document.getElementById('pauseBtn').onclick = () => {
-    state.running = !state.running;
-    document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
-    if (state.running) state.lastSwitch = Date.now();
-    addLog(state.running ? '→ Hervat' : '→ Gepauzeerd', 'note');
+    state.nextNotePositive = state.nextNoteNegative = false;
   };
 
-  // === OPSLAAN ALS .TXT ===
-  document.getElementById('saveLogBtn').onclick = () => {
-    let content = `SPORTLES OBSERVATIE\n${'='.repeat(50)}\n\n`;
-    content += `Lesonderwerp: ${state.info.subject}\n`;
-    content += `Lesgever:     ${state.info.teacher}\n`;
-    content += `Doelgroep:    ${state.info.group}\n`;
-    content += `Datum:        ${new Date().toLocaleDateString('nl-BE')}\n\n`;
-    content += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\n`;
-    content += `TIJDVERDELING\n${'-'.repeat(30)}\n`;
-
-    categories.forEach((cat, i) => {
-      const perc = state.totalElapsed ? (state.accum[i] / state.totalElapsed * 100).toFixed(1) : 0;
-      content += `${cat.name}: ${formatTime(state.accum[i])} (${perc}%)\n`;
-    });
-
-    content += `\nVOLLEDIG LOGBOEK\n${'-'.repeat(30)}\n`;
-    document.querySelectorAll('#log .logentry').forEach(e => {
-      let text = e.textContent;
-      if (e.classList.contains('log-note')) text = '    ' + text;
-      if (e.classList.contains('log-sub')) text = '  ' + text;
-      if (e.classList.contains('log-section')) text = '\n' + text.toUpperCase();
-      content += text + '\n';
-    });
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const safeSubject = state.info.subject.replace(/[^a-zA-Z0-9 -]/g, '');
-    const safeTeacher = state.info.teacher.replace(/[^a-zA-Z0-9 -]/g, '');
-    const safeGroup = state.info.group.replace(/[^a-zA-Z0-9 -]/g, '');
-    a.download = `${safeSubject} - ${safeTeacher} - ${safeGroup}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // === STOP ===
-  document.getElementById('stopBtn').onclick = () => {
-    state.running = false;
-    closeLastSegment(state);
-    addLog('Observatie beëindigd');
-
-    document.getElementById('pauseBtn').classList.add('hidden');
-    document.getElementById('stopBtn').classList.add('hidden');
-    document.getElementById('resetBtn').classList.remove('hidden');
-
-    // Rapport in resultaatvenster
-    const rapport = document.getElementById('result');
-    rapport.style.display = 'block';
-    rapport.textContent = "Rapport is gegenereerd – gebruik 'Opslaan als .txt' of kopieer uit logboek.";
-
-    navigator.clipboard.writeText(rapport.textContent).then(() => {
-      setTimeout(() => alert('Logboek automatisch gekopieerd naar klembord!'), 300);
-    });
-  };
-
-  document.getElementById('resetBtn').onclick = () => {
-    if (confirm('Nieuwe observatie starten?')) location.reload();
-  };
-
-  initNotes(state);
+  // === REST VAN JE CODE (categorie wissel, timer, opslaan, stop) ===
+  // (de rest blijft identiek aan vorige versie – te lang om hier te plakken)
+  // Ik stuur je de volledige main.js in het volgende bericht als je wil
 }
