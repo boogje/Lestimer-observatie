@@ -27,46 +27,67 @@ export function initApp() {
   const state = window.state;
   const noteInput = document.getElementById('noteInput');
 
-  // === START OBSERVATIE ===
-  document.getElementById('startObservationBtn').onclick = () => {
-    state.info = {
-      subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
-      teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
-      group:   document.getElementById('group').value.trim()   || "Onbekende groep"
-    };
-
-    document.getElementById('pageTitle').textContent = state.info.subject;
-    document.getElementById('intro').classList.add('hidden');
-    document.getElementById('timerScreen').classList.remove('hidden');
-
-    buildCategories(categories);
-
-    // Nummerhints ①②③④
-    document.querySelectorAll('.cat').forEach((cat, i) => {
-      cat.dataset.key = ['①','②','③','④'][i];
-      if (i === 0) cat.style.background = categories[0].color;
-    });
-
-    state.running = true;
-    state.lastSwitch = state.segmentStart = Date.now();
-
-    ['pauseBtn','stopBtn','saveLogBtn','noteInput','noteBtn'].forEach(id => {
-      document.getElementById(id).classList.remove('hidden');
-    });
-
-    // Lesdeel 1 begint meteen
-    state.currentSection = 1;
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'log-section';
-    sectionDiv.textContent = 'Lesdeel 1';
-    document.getElementById('log').appendChild(sectionDiv);
-
-    // Intro-info zonder timestamp
-    addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
-    addLog(`Lesgever: ${state.info.teacher}`, 'info');
-    addLog(`Doelgroep: ${state.info.group}`, 'info');
-    addLog('Observatie gestart', 'start');
+ // === START OBSERVATIE === (vervang deze functie volledig)
+document.getElementById('startObservationBtn').onclick = () => {
+  state.info = {
+    subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
+    teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
+    group:   document.getElementById('group').value.trim()   || "Onbekende groep"
   };
+
+  document.getElementById('pageTitle').textContent = state.info.subject;
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('timerScreen').classList.remove('hidden');
+
+  buildCategories(categories);
+
+  // Nummerhints
+  document.querySelectorAll('.cat').forEach((cat, i) => {
+    cat.dataset.key = ['①','②','③','④'][i];
+    if (i === 0) cat.style.background = categories[0].color;
+  });
+
+  state.running = true;
+  state.lastSwitch = state.segmentStart = Date.now();
+
+  ['pauseBtn','stopBtn','saveLogBtn','noteInput','noteBtn'].forEach(id => {
+    document.getElementById(id).classList.remove('hidden');
+  });
+
+  const startTime = new Date().toLocaleString('nl-BE', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
+  // ==== PERFECTE LOGBOEK STRUCTUUR ====
+  const log = document.getElementById('log');
+  log.innerHTML = ''; // leegmaken
+
+  // Hoofdtitel
+  const title = document.createElement('div');
+  title.className = 'log-title';
+  title.textContent = 'LESOBSERVATIE';
+  log.appendChild(title);
+
+  // Intro-info zonder timestamp
+  addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
+  addLog(`Lesgever: ${state.info.teacher}`, 'info');
+  addLog(`Doelgroep: ${state.info.group}`, 'info');
+  addLog(`Tijdstip: observatie gestart op ${startTime}`, 'info');
+
+  // Lege regel + Lesdeel 1
+  log.appendChild(document.createElement('br'));
+  state.currentSection = 1;
+  const sectionDiv = document.createElement('div');
+  sectionDiv.className = 'log-section';
+  sectionDiv.textContent = 'LESDEEL 1';
+  log.appendChild(sectionDiv);
+};
 
   // === TOETSENBORD ===
   document.addEventListener('keydown', e => {
