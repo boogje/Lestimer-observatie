@@ -285,3 +285,26 @@ button {
     border-top: 1px solid #333; 
   }
 }
+/* Hoofdtitel bovenaan logboek */
+.log-title {
+  font-size: 1.4em;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #4caf50;
+  margin: 8px 0 16px 0;
+  text-align: center;
+  border-bottom: 2px solid #4caf50;
+  padding-bottom: 8px;
+}
+
+/* Intro-info zonder timestamp + inspring */
+.logentry.info {
+  padding-left: 30px;
+  color: #bbb;
+  background: transparent !important;
+  font-size: 0.98em;
+  margin: 6px 0;
+}
+
+/* Lege regel voor mooie scheiding */
+#log br { display: block; content: ""; margin: 12px 0; }
