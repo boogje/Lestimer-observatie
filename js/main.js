@@ -8,62 +8,70 @@ import { formatTime, addLog } from './helpers.js';
 
 window.state = {
   running: false,
-  startTime: null,
   lastSwitch: null,
   totalElapsed: 0,
   accum: [0,0,0,0],
   active: 0,
   segments: [],
   segmentStart: null,
-  info: {}
+  info: {},
+  currentSection: 0
 };
 
 window.categories = categories;
 
+let lastSegmentDuration = 0;
+
 export function initApp() {
   const state = window.state;
 
-  // === INTRO SCHERM ===
   document.getElementById('startObservationBtn').onclick = () => {
-    // Info opslaan
-    state.info.subject = document.getElementById('subject').value.trim() || "Onbekend onderwerp";
-    state.info.teacher = document.getElementById('teacher').value.trim() || "Onbekende lesgever";
-    state.info.group   = document.getElementById('group').value.trim()   || "Onbekende groep";
+    state.info = {
+      subject: document.getElementById('subject').value.trim() || "Onbekend onderwerp",
+      teacher: document.getElementById('teacher').value.trim() || "Onbekende lesgever",
+      group:   document.getElementById('group').value.trim()   || "Onbekende groep"
+    };
 
-    // Titel updaten
     document.getElementById('pageTitle').textContent = state.info.subject;
-
-    // Schakel schermen
     document.getElementById('intro').classList.add('hidden');
     document.getElementById('timerScreen').classList.remove('hidden');
 
-    // Bouw categorieën + start timer
     buildCategories(categories);
     state.running = true;
-    state.startTime = state.lastSwitch = state.segmentStart = Date.now();
+    state.lastSwitch = state.segmentStart = Date.now();
 
-    // Toon bediening
     document.getElementById('pauseBtn').classList.remove('hidden');
     document.getElementById('stopBtn').classList.remove('hidden');
     document.getElementById('noteInput').classList.remove('hidden');
     document.getElementById('noteBtn').classList.remove('hidden');
 
-    // Kleur eerste categorie
     document.querySelector('.cat').style.background = categories[0].color;
 
-    // Log start
+    // Intro info zonder timestamp
+    addLog(`Lesonderwerp: ${state.info.subject}`, 'info');
+    addLog(`Lesgever: ${state.info.teacher}`, 'info');
+    addLog(`Doelgroep: ${state.info.group}`, 'info');
     addLog('Observatie gestart', 'start');
-    addLog(`Lesonderwerp: ${state.info.subject}`);
-    addLog(`Lesgever: ${state.info.teacher}`);
-    addLog(`Doelgroep: ${state.info.group}`);
   };
 
-  // === CATEGORIE WISSEL ===
+  // Categorie wissel
   document.addEventListener('click', e => {
     const cat = e.target.closest('.cat');
     if (!cat || !state.running) return;
 
+    // Duur van vorige segment
+    lastSegmentDuration = Date.now() - state.segmentStart;
+
     addSegment(state, state.active);
+
+    // Nieuw lesdeel bij Instructie & uitleg
+    if (state.active === 1 && parseInt(cat.dataset.id) !== 1) {
+      state.currentSection++;
+      const sectionDiv = document.createElement('div');
+      sectionDiv.className = 'log-section';
+      sectionDiv.textContent = `Lesdeel ${state.currentSection}`;
+      document.getElementById('log').appendChild(sectionDiv);
+    }
 
     document.querySelectorAll('.cat').forEach(c => {
       c.classList.remove('active');
@@ -75,10 +83,15 @@ export function initApp() {
     cat.style.background = categories[state.active].color;
     state.segmentStart = Date.now();
 
-    addLog(`→ ${categories[state.active].name}`, 'cat', state.active);
+    const durationText = lastSegmentDuration > 1000 ? ` (${formatTime(lastSegmentDuration)})` : '';
+    const entry = document.createElement('div');
+    entry.className = 'logentry log-sub log-cat' + state.active;
+    entry.textContent = `[${formatTime(state.totalElapsed)}] → ${categories[state.active].name}${durationText}`;
+    document.getElementById('log').appendChild(entry);
+    entry.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // === TIMER LOOP ===
+  // Timer
   setInterval(() => {
     if (!state.running) return;
     const now = Date.now();
@@ -89,51 +102,69 @@ export function initApp() {
     updateDisplay(state);
   }, 200);
 
-  // === PAUZE ===
+  // Pauze
   document.getElementById('pauseBtn').onclick = () => {
     state.running = !state.running;
     document.getElementById('pauseBtn').textContent = state.running ? 'Pauze' : 'Hervatten';
     if (state.running) state.lastSwitch = Date.now();
-    addLog(state.running ? 'Hervat' : 'Gepauzeerd');
+    addLog(state.running ? '→ Hervat' : '→ Gepauzeerd', 'note');
   };
 
-  // === STOP ===
+  // Notitie (met dubbele inspring)
+  window.addNoteToLog = (text) => {
+    const entry = document.createElement('div');
+    entry.className = 'logentry log-note';
+    entry.textContent = `→ ${text}`;
+    document.getElementById('log').appendChild(entry);
+    entry.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Stop
   document.getElementById('stopBtn').onclick = () => {
     state.running = false;
     closeLastSegment(state);
     addLog('Observatie beëindigd');
 
-    // Vervang Pauze door Reset
     document.getElementById('pauseBtn').classList.add('hidden');
     document.getElementById('stopBtn').classList.add('hidden');
     document.getElementById('resetBtn').classList.remove('hidden');
 
-    // Rapport
-    let result = `OBSERVATIE RAPPORT\n${'='.repeat(50)}\n\n`;
-    result += `Lesonderwerp: ${state.info.subject}\n`;
-    result += `Lesgever:     ${state.info.teacher}\n`;
-    result += `Doelgroep:    ${state.info.group}\n`;
-    result += `Datum:        ${new Date().toLocaleDateString('nl-BE')}\n\n`;
-    result += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\n`;
+    // Rapport genereren
+    let rapport = `SPORTLES OBSERVATIE\n${'='.repeat(50)}\n\n`;
+    rapport += `Lesonderwerp: ${state.info.subject}\n`;
+    rapport += `Lesgever:     ${state.info.teacher}\n`;
+    rapport += `Doelgroep:    ${state.info.group}\n`;
+    rapport += `Datum:        ${new Date().toLocaleDateString('nl-BE')}\n\n`;
+    rapport += `Totale lestijd: ${formatTime(state.totalElapsed)}\n\n`;
+    rapport += `TIJDVERDELING\n${'-'.repeat(30)}\n`;
 
     categories.forEach((cat, i) => {
       const perc = state.totalElapsed ? (state.accum[i] / state.totalElapsed * 100).toFixed(1) : 0;
-      result += `${cat.name}: ${formatTime(state.accum[i])} (${perc}%)\n`;
+      rapport += `${cat.name}: ${formatTime(state.accum[i])} (${perc}%)\n`;
     });
 
-    result += `\nVolledig logboek:\n${'-'.repeat(30)}\n`;
-    document.querySelectorAll('#log .logentry').forEach(e => result += e.textContent + '\n');
+    rapport += `\nVOLLEDIG LOGBOEK\n${'-'.repeat(30)}\n`;
+    document.querySelectorAll('#log .logentry').forEach(e => {
+      let text = e.textContent;
+      if (e.classList.contains('log-note')) text = '    ' + text;
+      if (e.classList.contains('log-sub')) text = '  ' + text;
+      if (e.classList.contains('log-section')) text = '\n' + text.toUpperCase();
+      rapport += text + '\n';
+    });
 
     const div = document.getElementById('result');
-    div.textContent = result;
+    div.textContent = rapport;
     div.style.display = 'block';
+
+    // Kopiëren naar klembord
+    navigator.clipboard.writeText(rapport).then(() => {
+      alert('Rapport automatisch gekopieerd naar klembord!');
+    });
   };
 
-  // === RESET ===
   document.getElementById('resetBtn').onclick = () => {
     if (confirm('Nieuwe observatie starten?')) location.reload();
   };
 
-  // Notities
   initNotes(state);
 }
