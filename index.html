@@ -1,122 +1,64 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<title>Sportles Observatie Timer v10 – Modulair</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- STYLESHEET -->
-<link rel="stylesheet" href="css/style.css">
-
+  <meta charset="utf-8">
+  <title>Sportles Observatie Timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- ─────────────────────────────────────────────
-     STARTPANEEL
-     ───────────────────────────────────────────── -->
-<div id="configPanel">
-  <h2>Lesgegevens invullen</h2>
-
-  <label>Titel van de les:</label>
-  <input id="cfgTitle" type="text" placeholder="bv. Balvaardigheid – tikspelen">
-
-  <label>Lesgever(s):</label>
-  <input id="cfgTeacher" type="text" placeholder="bv. Juf Sarah, Meester Tom">
-
-  <label>Locatie / Klasgroep:</label>
-  <input id="cfgLocation" type="text" placeholder="bv. 6SPORT – Sporthal Rembert">
-
-  <button id="configStartBtn">Observatie starten</button>
+<!-- INTRO SCHERM -->
+<div id="intro" class="screen">
+  <h1>Sportles Observatie</h1>
+  <div class="intro-form">
+    <div class="field">
+      <label>Lesonderwerp</label>
+      <input type="text" id="subject" placeholder="Bv. Handbal – passing en vangen">
+    </div>
+    <div class="field">
+      <label>Lesgever</label>
+      <input type="text" id="teacher" placeholder="Bv. Juf Annelies">
+    </div>
+    <div class="field">
+      <label>Doelgroep</label>
+      <input type="text" id="group" placeholder="Bv. 5de leerjaar – 22 leerlingen">
+    </div>
+    <button id="startObservationBtn" class="big-btn">Start observatie</button>
+  </div>
 </div>
 
-
-
-<!-- ─────────────────────────────────────────────
-     MAIN
-     ───────────────────────────────────────────── -->
-<main>
-
-  <h1 id="lessonHeader"></h1>
-
-  <div id="total">00:00</div>
-
-  <!-- TIMELINE -->
-  <div id="timelineWrapper">
-    <div id="timelineLabels"></div>
+<!-- TIMER SCHERM -->
+<div id="timerScreen" class="screen hidden">
+  <main>
+    <h1 id="pageTitle">Sportles Observatie Timer</h1>
+    <div id="total">00:00</div>
     <div id="timeline"></div>
-  </div>
+    <div id="categories-container"></div>
 
-  <!-- CATEGORIEKNOPPEN -->
-  <div class="cat active" data-id="0">
-    <div class="fill" style="background:#e65100"></div>
-    <div class="perc" id="p0">0%</div>
-    <div class="label">Organisatie & beheer</div>
-    <div class="desc">materiaal klaarzetten, wachten, orde herstellen…</div>
-    <div class="time" id="t0">0:00</div>
-  </div>
-
-  <div class="cat" data-id="1">
-    <div class="fill" style="background:#7e57c2"></div>
-    <div class="perc" id="p1">0%</div>
-    <div class="label">Instructie & uitleg</div>
-    <div class="desc">leerkracht praat, leerlingen luisteren…</div>
-    <div class="time" id="t1">0:00</div>
-  </div>
-
-  <div class="cat" data-id="2">
-    <div class="fill" style="background:#43a047"></div>
-    <div class="perc" id="p2">0%</div>
-    <div class="label">Actieve leertijd</div>
-    <div class="desc">leerlingen motorisch bezig met leerinhoud…</div>
-    <div class="time" id="t2">0:00</div>
-  </div>
-
-  <div class="cat" data-id="3">
-    <div class="fill" style="background:#616161"></div>
-    <div class="perc" id="p3">0%</div>
-    <div class="label">Overig / pauze</div>
-    <div class="desc">drinken, blessure, ongeplande onderbreking…</div>
-    <div class="time" id="t3">0:00</div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="controls">
-    <button id="startBtn" class="hidden">Start observatie</button>
-    <button id="pauseBtn" class="hidden">Pauze</button>
-    <button id="stopBtn"  class="hidden">Stop & resultaten</button>
-    <button id="resetBtn" class="hidden">Reset</button>
-  </div>
-
-  <!-- NOTITIES -->
-  <input id="noteInput" class="hidden" type="text" placeholder="Opmerking typen…">
-  <button id="noteBtn" class="hidden">Notitie toevoegen</button>
-
-  <!-- EXPORT -->
-  <div id="exportSection">
-    <div style="display:flex; gap:12px;">
-      <button id="copyBtn">📋 Kopieer logboek</button>
-      <button id="downloadBtn">⬇️ Download TXT</button>
+    <div class="controls">
+      <button id="pauseBtn" class="hidden">Pauze</button>
+      <button id="stopBtn" class="hidden">Stop & resultaten</button>
+      <button id="resetBtn" class="hidden">Reset</button>
     </div>
-  </div>
 
-</main>
+    <input type="text" id="noteInput" class="hidden" placeholder="Opmerking typen…">
+    <button id="noteBtn" class="hidden">Notitie toevoegen</button>
 
+    <div id="result"></div>
+  </main>
 
+  <aside>
+    <h3>Logboek</h3>
+    <div id="log"></div>
+  </aside>
+</div>
 
-<!-- ─────────────────────────────────────────────
-     LOG
-     ───────────────────────────────────────────── -->
-<aside>
-  <h3>Logboek</h3>
-  <div id="log"></div>
-</aside>
-
-
-
-<!-- ─────────────────────────────────────────────
-     JAVASCRIPT MODULES
-     ───────────────────────────────────────────── -->
-<script type="module" src="js/app.js"></script>
+<script type="module">
+  import { categories } from './js/config.js';
+  import { initApp } from './js/main.js';
+  initApp(categories);
+</script>
 
 </body>
 </html>
