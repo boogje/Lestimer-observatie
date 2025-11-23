@@ -1,28 +1,25 @@
-/* INTRO – prachtig zoals jouw screenshot */
+/* === MOOIE BREDE INTROPAGINA (zoals jij hem perfect vond) === */
 #intro {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #1e1e1e;
+  background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
   padding: 20px;
 }
-.intro-box {
-  background: #2b2b2b;
-  padding: 50px 60px;
-  border-radius: 30px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+.intro-container {
   width: 100%;
-  max-width: 560px;
+  max-width: 600px;
   text-align: center;
 }
-.intro-box h1 {
-  font-size: 2.2em;
-  margin-bottom: 30px;
-  color: #4caf50;
+.intro-form {
+  background: #2b2b2b;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
 }
 .intro-form .field {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   text-align: left;
 }
 .intro-form label {
@@ -52,9 +49,14 @@
   font-weight: bold;
   margin-top: 20px;
   box-shadow: 0 8px 20px rgba(76,175,80,0.4);
+  transition: all 0.3s;
+}
+#startObservationBtn:hover {
+  background: #66bb6a;
+  transform: translateY(-2px);
 }
 
-/* Logboek header met opslaan-knop rechtsboven */
+/* Opslaan knop rechtsboven in logboek */
 .log-header {
   display: flex;
   justify-content: space-between;
@@ -78,9 +80,9 @@
   position: absolute;
   top: 8px;
   right: 12px;
-  font-size: 1.4em;
+  font-size: 1.8em;
   font-weight: bold;
-  opacity: 0.4;
+  opacity: 0.3;
   z-index: 4;
   pointer-events: none;
 }
